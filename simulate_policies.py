@@ -7,7 +7,7 @@ import argparse
 
 # Command line inputs
 parser = argparse.ArgumentParser()
-parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=200)
+parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=50000)
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
 args = parser.parse_args()
@@ -85,8 +85,15 @@ if __name__ == '__main__':
                     cost_reg += cost_reg_incr
                     # Record data at intervals of STEP in file
                     if t % STEP == 0:
+                        # Convert nsamps array to a string for CSV output
+                        nsamps_str = ';'.join(map(str, nsamps))
+
+                        # Writing to standard output (you might want to write to a file instead)
                         sys.stdout.write(
-                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}\n".format(al, rs, t, qual_reg, cost_reg))
+                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(
+                                al, rs, t, qual_reg, cost_reg, nsamps_str
+                            )
+                        )
             elif al == 'ucb-cs':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
@@ -118,8 +125,15 @@ if __name__ == '__main__':
                     cost_reg += cost_reg_incr
                     # Record data at intervals of STEP in file
                     if t % STEP == 0:
+                        # Convert nsamps array to a string for CSV output
+                        nsamps_str = ';'.join(map(str, nsamps))
+
+                        # Writing to standard output (you might want to write to a file instead)
                         sys.stdout.write(
-                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}\n".format(al, rs, t, qual_reg, cost_reg))
+                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(
+                                al, rs, t, qual_reg, cost_reg, nsamps_str
+                            )
+                        )
             else:
-                print("Invalid algorithm {0} selected, ignored".format(al))
+                print("Invalid algorithm {0} selected_algos, ignored".format(al))
                 continue

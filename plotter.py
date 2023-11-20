@@ -23,14 +23,14 @@ x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
 y_points = np.zeros_like(x_points)
 # These are all the possible labels, of these atmost 8 can be supported with below colors
 # LABELS = ['ucb', 'ts', 'qucb', 'qts', 'cucb', 'cts', 'u-cucb', 'new', 'cts-old', 'cucb-old']
-# selected must be a subset of algos selected in simulate_policies.py
-# All the algorithms selected must have already been simulated in simulate_policies.py
+# selected_algos must be a subset of algos selected_algos in simulate_policies.py
+# All the algorithms selected_algos must have already been simulated in simulate_policies.py
 selected = ['ucb', 'ucb-cs']
 # Number of distinct algorithms used
 nalgos = len(selected)
 # Number of colors should be at least as many as number of LABELS
 COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f']
-# Choose as many colors as there are algorithms selected
+# Choose as many colors as there are algorithms selected_algos
 if len(COLORS) < len(selected):
 	print("Error: Not enough colors present for plotting\nAdd colors or reduce number of algorithms")
 	exit(-1)
@@ -38,14 +38,15 @@ else:
 	COLORS = COLORS[:len(selected)]
 
 bandit_data = pd.read_csv(in_file, sep=",", header=None)
-bandit_data.columns = ["algo", "rs", "horizon", "qual_reg", "cost_reg"]
+bandit_data.columns = ["algo", "rs", "horizon", "qual_reg", "cost_reg", "nsamps"]
+# Convert 'nsamps' from string to NumPy array
+bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 # List of dependent variables to be plotted, from above list
-dependents = bandit_data.columns[3:]
-
+scalar_dependents = bandit_data.columns[3:-1]	# Exclude nsamps from scalar plotting dependent variables
 
 # Plot and average the results for each label onto a single plot,
 # doesn't make a lot of sense, just there
-for dependent in dependents:
+for dependent in scalar_dependents:
 	plt.figure(figsize=(10, 10))
 	for index, label in enumerate(selected):
 		cur_data = bandit_data.loc[bandit_data["algo"] == label]
