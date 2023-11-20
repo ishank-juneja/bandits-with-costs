@@ -8,7 +8,7 @@ import pathlib
 
 # Command line input
 parser = argparse.ArgumentParser()
-parser.add_argument("-i", action="store", dest="file")
+parser.add_argument("-idx", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float)
 args = parser.parse_args()

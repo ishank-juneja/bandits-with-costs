@@ -3,14 +3,18 @@ from policy_library import UCB, UCB_CS
 from utils import simulate_bandit_rewards
 import sys
 import argparse
+from get_instance import read_instance_from_file
 
 
 # Command line inputs
 parser = argparse.ArgumentParser()
+parser.add_argument("-idx", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=50000)
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
 args = parser.parse_args()
+# Get the input bandit instance file_name
+in_file = args.file
 # Policies to be simulated
 algos = ['ucb', 'ucb-cs']
 # Horizon/ max number of iterations
@@ -22,12 +26,11 @@ STEP = args.STEP
 
 
 if __name__ == '__main__':
-    # Create a Multi-Armed Bandit Instance by specifying the mean reward of each arm
-    arm_reward_array = np.array([0.1, 0.6, 0.3, 0.8, 0.9, 0.2])
-    # Specify minimum acceptable reward at each time-step (Bottom line performance)
-    min_reward = 0.6
-    # List of known costs for all the arms
-    arm_cost_array = np.array([0.05, 0.2, 0.2, 0.4, 0.5, 0.4])
+    # Read the bandit instance from file
+    instance_data = read_instance_from_file(in_file)
+    arm_reward_array = instance_data.get('arm_reward_array', None)
+    min_reward = instance_data.get('min_reward', None)[0]
+    arm_cost_array = instance_data.get('arm_cost_array', None)
     # Assert that the number of arms and costs are the same
     assert len(arm_reward_array) == len(arm_cost_array)
     # Infer the number of arms from the list of rewards/costs
