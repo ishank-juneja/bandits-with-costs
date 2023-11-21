@@ -13,9 +13,9 @@ parser.add_argument("-STEP", action="store", dest="STEP", type=int)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float)
 args = parser.parse_args()
 in_file = args.file
-# Extract out just file name
+# Extract out just file name sans extension
 in_name = in_file.split('/')[-1].split('.')[0]
-# Ignore last 4 characters -out
+# Ignore last 4 characters _log
 in_name = in_name[:-4]
 # Create folder to save results if it doesn't already exist
 pathlib.Path('results/' + in_name).mkdir(parents=False, exist_ok=True)
@@ -65,5 +65,5 @@ for dependent in scalar_dependents:
 	plt.ylabel("Cumulative Regret", fontweight="bold")
 	plt.title("CS Problem Policy Comparisons", fontweight="bold")
 	plt.yticks()
-	plt.savefig('results/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
+	plt.savefig('../results/plots/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
 	plt.close()

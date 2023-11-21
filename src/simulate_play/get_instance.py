@@ -14,7 +14,7 @@ def read_instance_from_file(file_path):
 
 if __name__ == '__main__':
     # Example usage
-    file_path = 'bandit_instances/I1.txt'
+    file_path = '../../data/bandit_instances/I1.txt'
     instance_data = read_instance_from_file(file_path)
 
     arm_reward_array = instance_data.get('arm_reward_array', None)

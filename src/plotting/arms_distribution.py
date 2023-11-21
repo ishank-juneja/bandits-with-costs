@@ -58,7 +58,7 @@ for idx, t in enumerate(x_points):
             nsamps_array[algo_index, idx, :] = nsamps_values
 
 # Create temporary directory for frames
-tmp_frames_dir = 'results/tmp'
+tmp_frames_dir = '../../results/gifs/tmp'
 pathlib.Path(tmp_frames_dir).mkdir(parents=True, exist_ok=True)
 
 # Find the maximum value across all data points for setting y-axis limits

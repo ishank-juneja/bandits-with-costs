@@ -1,9 +1,9 @@
 import numpy as np
-from policy_library import UCB, UCB_CS
-from utils import simulate_bandit_rewards
+from src.simulate_play.policy_library import UCB, UCB_CS
+from src.utils.utils import simulate_bandit_rewards
 import sys
 import argparse
-from get_instance import read_instance_from_file
+from src.simulate_play.get_instance import read_instance_from_file
 
 
 # Command line inputs
