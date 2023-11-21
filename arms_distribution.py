@@ -2,6 +2,7 @@ from gif_maker import GIFMaker
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
+from matplotlib.ticker import LogLocator, LogFormatter
 import numpy as np
 import argparse
 import pathlib
@@ -62,6 +63,8 @@ pathlib.Path(tmp_frames_dir).mkdir(parents=True, exist_ok=True)
 
 # Find the maximum value across all data points for setting y-axis limits
 max_pulls = np.max(nsamps_array)
+if max_pulls <= 0:
+    max_pulls = 1  # Ensure max_pulls is greater than 0
 # Determine the width of each bar
 bar_width = 1 / (nalgos + 1)  # Adding 1 for some spacing between groups of bars
 
@@ -72,17 +75,17 @@ for idx, t in enumerate(x_points):
         # Calculate the x-position for each bar
         x_positions = np.arange(narms) + (algo_index * bar_width)
 
-        plt.bar(x_positions, nsamps_array[algo_index, idx, :], width=bar_width, color=COLORS[algo_index], alpha=0.5, label=label)
+        plt.bar(x_positions, nsamps_array[algo_index, idx, :], width=bar_width, color=COLORS[algo_index], alpha=0.5,
+                label=label)
 
     plt.xlabel("Arms", fontweight="bold")
     plt.ylabel("Number of Pulls", fontweight="bold")
     plt.title(f"Distribution of Arm Pulls at Time {t}", fontweight="bold")
     plt.legend()
     plt.xticks(np.arange(narms) + bar_width / 2, np.arange(narms) + 1)
-    plt.yticks()
 
-    # Set y-axis limits to be the same for all plots
-    plt.ylim(0, max_pulls + (0.1 * max_pulls))  # Adding 10% padding
+    plt.yscale('log')  # Change to log scale
+    plt.ylim(1, max_pulls * 10)  # Set consistent Y-axis limits for all plots
 
     # Save frame as PNG in tmp_frames_dir
     frame_filename = os.path.join(tmp_frames_dir, "file{0:05d}.png".format(idx + 1))
