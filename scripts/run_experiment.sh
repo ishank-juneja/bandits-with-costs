@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Directory containing the problem instance files
-INSTANCE_DIR="../data/bandit_instances"
+INSTANCE_DIR="data/bandit_instances"
 
 # Default parameters for the Python script
-STEP=1
+STEP=100
 HORIZON=50000
 NRUNS=50
 
@@ -16,5 +16,5 @@ for file in "$INSTANCE_DIR"/*.txt; do
     filename=$(basename -- "$file")
     logname="${filename%.*}_log.csv"
 
-    python ../src/simulate_play/simulate_policies.py -idx "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS >> "../results/run_logs/$logname"
+    python src/simulate_play/simulate_policies.py -idx "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS >> "results/run_logs/$logname"
 done

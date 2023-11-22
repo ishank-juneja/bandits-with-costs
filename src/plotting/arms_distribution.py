@@ -19,10 +19,10 @@ in_file = args.file
 in_name = in_file.split('/')[-1].split('.')[0]
 # Ignore last 4 characters -out
 in_name = in_name[:-4]
-# Create folder to save results if it doesn't already exist
-pathlib.Path('results/' + in_name).mkdir(parents=False, exist_ok=True)
+
+# Create an array for the points in time at which to plot frames
 x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
-y_points = np.zeros_like(x_points)
+
 # These are all the possible labels, of these at most 8 can be supported with below colors
 # LABELS = ['ucb', 'ts', 'qucb', 'qts', 'cucb', 'cts', 'u-cucb', 'new', 'cts-old', 'cucb-old']
 # selected_algos must be a subset of algos in simulate_policies.py
@@ -58,7 +58,7 @@ for idx, t in enumerate(x_points):
             nsamps_array[algo_index, idx, :] = nsamps_values
 
 # Create temporary directory for frames
-tmp_frames_dir = '../../results/gifs/tmp'
+tmp_frames_dir = 'results/gifs/tmp'
 pathlib.Path(tmp_frames_dir).mkdir(parents=True, exist_ok=True)
 
 # Find the maximum value across all data points for setting y-axis limits
@@ -94,7 +94,7 @@ for idx, t in enumerate(x_points):
 
 # Use GIFMaker to create GIF from frames
 gif_maker = GIFMaker(delay=40)
-gif_path = f'results/{in_name}/{in_name}_nsamps_distribution.gif'
+gif_path = f'results/gifs/{in_name}_nsamps_distribution.gif'
 gif_maker.make_gif(gif_path, tmp_frames_dir)
 
 gif_maker.cleanup_frames(tmp_frames_dir)

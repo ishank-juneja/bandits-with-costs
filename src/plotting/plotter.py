@@ -18,7 +18,7 @@ in_name = in_file.split('/')[-1].split('.')[0]
 # Ignore last 4 characters _log
 in_name = in_name[:-4]
 # Create folder to save results if it doesn't already exist
-pathlib.Path('results/' + in_name).mkdir(parents=False, exist_ok=True)
+pathlib.Path('results/plots/' + in_name).mkdir(parents=False, exist_ok=True)
 x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
 y_points = np.zeros_like(x_points)
 # These are all the possible labels, of these atmost 8 can be supported with below colors
@@ -42,7 +42,7 @@ bandit_data.columns = ["algo", "rs", "horizon", "qual_reg", "cost_reg", "nsamps"
 # Convert 'nsamps' from string to NumPy array
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 # List of dependent variables to be plotted, from above list
-scalar_dependents = bandit_data.columns[3:-1]	# Exclude nsamps from scalar plotting dependent variables
+scalar_dependents = bandit_data.columns[3:-1]	# Exclude the last column which consists of
 
 # Plot and average the results for each label onto a single plot,
 # doesn't make a lot of sense, just there
@@ -65,5 +65,5 @@ for dependent in scalar_dependents:
 	plt.ylabel("Cumulative Regret", fontweight="bold")
 	plt.title("CS Problem Policy Comparisons", fontweight="bold")
 	plt.yticks()
-	plt.savefig('../results/plots/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
+	plt.savefig('results/plots/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
 	plt.close()
