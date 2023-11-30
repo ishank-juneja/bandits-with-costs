@@ -1,5 +1,5 @@
 import numpy as np
-from src.simulate_play.policy_library import UCB, UCB_CS
+from src.simulate_play.policy_library import UCB, MTR_UCB
 from src.utils.utils import simulate_bandit_rewards
 import sys
 import argparse
@@ -16,7 +16,7 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['ucb', 'ucb-cs']
+algos = ['ucb', 'mtr-ucb']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                                 al, rs, t, qual_reg, cost_reg, nsamps_str
                             )
                         )
-            elif al == 'ucb-cs':
+            elif al == 'mtr-ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
@@ -111,7 +111,7 @@ if __name__ == '__main__':
                     else:
                         # Update ucb index value for all arms based on quantities from
                         # previous iteration and obtain arm index to sample
-                        k = UCB_CS(mu_hat, nsamps, t, arm_cost_array, min_reward)
+                        k = MTR_UCB(mu_hat, nsamps, t, arm_cost_array, min_reward)
                     # Get 0/1 reward based on arm/channel choice
                     r = arm_samples[k, t - 1]
                     # Increment number of times kth arm sampled
