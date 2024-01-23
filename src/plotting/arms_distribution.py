@@ -25,8 +25,7 @@ x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
 
 # These are all the possible labels, of these at most 8 can be supported with below colors
 # LABELS = ['ucb', 'ts', 'qucb', 'qts', 'cucb', 'cts', 'u-cucb', 'new', 'cts-old', 'cucb-old']
-# selected_algos must be a subset of algos in simulate_policies.py
-# All the algorithms selected_algos must have already been simulated in simulate_policies.py
+# selected_algos must be a subset of the algos data available in the log-file being processed
 selected_algos = ['ucb', 'mtr-ucb']
 # Number of distinct algorithms used
 nalgos = len(selected_algos)
