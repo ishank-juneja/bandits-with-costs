@@ -27,7 +27,7 @@ x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
 # LABELS = ['ucb', 'ts', 'qucb', 'qts', 'cucb', 'cts', 'u-cucb', 'new', 'cts-old', 'cucb-old']
 # selected_algos must be a subset of algos in simulate_policies.py
 # All the algorithms selected_algos must have already been simulated in simulate_policies.py
-selected_algos = ['ucb', 'ucb-cs']
+selected_algos = ['ucb', 'mtr-ucb']
 # Number of distinct algorithms used
 nalgos = len(selected_algos)
 # Number of colors should be at least as many as number of LABELS
@@ -78,10 +78,10 @@ for idx, t in enumerate(x_points):
         plt.bar(x_positions, nsamps_array[algo_index, idx, :], width=bar_width, color=COLORS[algo_index], alpha=0.5,
                 label=label)
 
-    plt.xlabel("Arms", fontweight="bold")
-    plt.ylabel("Number of Pulls", fontweight="bold")
+    plt.xlabel("Arms", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
+    plt.ylabel("Number of Pulls", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
     plt.title(f"Distribution of Arm Pulls at Time {t}", fontweight="bold")
-    plt.legend()
+    plt.legend(fontsize='large')  # Increase font size for legend
     plt.xticks(np.arange(narms) + bar_width / 2, np.arange(narms) + 1)
 
     plt.yscale('log')  # Change to log scale

@@ -16,7 +16,8 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['ucb', 'mtr-ucb']
+# algos = ['ucb', 'mtr-ucb']
+algos = ['improved-ucb-known-horizon']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over

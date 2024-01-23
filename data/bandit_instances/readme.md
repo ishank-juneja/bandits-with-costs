@@ -1,0 +1,1 @@
+Bandit Instances in this folder are MAB-CS (Multi-Armed Bandits with Cost Subsidy Instances)

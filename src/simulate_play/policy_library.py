@@ -2,6 +2,16 @@ import numpy as np
 from math import log, sqrt
 
 
+def improved_ucb_known_horizon(p_estimates, nsamps, T):
+    """
+    A function that implements the Improved UCB algorithm.
+    p_estimates: Empirical estimates of the success probabilities of each arm updated by the caller
+    nsamps: Number of times each arm has been sampled, updated by the caller
+    T: Known horizon as input
+    """
+    
+
+
 def random_argmin(arr):
     """
     A wrapper around np.argmin that breaks ties between minimum index options uniformly at random.

@@ -25,7 +25,7 @@ y_points = np.zeros_like(x_points)
 # LABELS = ['ucb', 'ts', 'qucb', 'qts', 'cucb', 'cts', 'u-cucb', 'new', 'cts-old', 'cucb-old']
 # selected_algos must be a subset of algos selected_algos in simulate_policies.py
 # All the algorithms selected_algos must have already been simulated in simulate_policies.py
-selected = ['ucb', 'ucb-cs']
+selected = ['ucb', 'mtr-ucb']
 # Number of distinct algorithms used
 nalgos = len(selected)
 # Number of colors should be at least as many as number of LABELS
@@ -42,28 +42,22 @@ bandit_data.columns = ["algo", "rs", "horizon", "qual_reg", "cost_reg", "nsamps"
 # Convert 'nsamps' from string to NumPy array
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 # List of dependent variables to be plotted, from above list
+# Dependents are Cost Regret, Quality Regret
 scalar_dependents = bandit_data.columns[3:-1]	# Exclude the last column which consists of
 
-# Plot and average the results for each label onto a single plot,
-# doesn't make a lot of sense, just there
+# Plot the regret data
 for dependent in scalar_dependents:
-	plt.figure(figsize=(10, 10))
-	for index, label in enumerate(selected):
-		cur_data = bandit_data.loc[bandit_data["algo"] == label]
-		# print(label)
-		# Get data points for each algorithm
-		for i in range(len(y_points)):
-			y_points[i] = cur_data.loc[cur_data["horizon"] == x_points[i]][dependent].mean()
-		plt.plot(x_points, y_points, color=COLORS[index], linewidth=3)
+    plt.figure(figsize=(10, 10))
+    for index, label in enumerate(selected):
+        cur_data = bandit_data.loc[bandit_data["algo"] == label]
+        for i in range(len(y_points)):
+            y_points[i] = cur_data.loc[cur_data["horizon"] == x_points[i]][dependent].mean()
+        plt.plot(x_points, y_points, color=COLORS[index], linewidth=3)
 
-	plt.legend(selected)
-	# f = mticker.ScalarFormatter(useOffset=False, useMathText=True)
-	# g = lambda x,pos : "${}$".format(f._formatSciNotation('%1.10e' % x))
-	# plt.gca().xaxis.set_major_formatter(mticker.FuncFormatter(g))
-	# plt.xticks(np.arange(0, max(x_points)+1, 50000))
-	plt.xlabel("Number of rounds T", fontweight="bold")
-	plt.ylabel("Cumulative Regret", fontweight="bold")
-	plt.title("CS Problem Policy Comparisons", fontweight="bold")
-	plt.yticks()
-	plt.savefig('results/plots/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
-	plt.close()
+    plt.legend(selected, fontsize='large')  # Increase font size for legend
+    plt.xlabel("Number of rounds T", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
+    plt.ylabel("Cumulative Regret", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
+    plt.title("CS Problem Policy Comparisons", fontweight="bold")
+    plt.yticks()
+    plt.savefig('results/plots/' + in_name + "/{0}_{1}_complete_plot".format(in_name, dependent) + ".png", bbox_inches="tight")
+    plt.close()
