@@ -2,53 +2,18 @@ import numpy as np
 from math import log, sqrt
 
 
-def improved_ucb(horizon, arm_samples):
+def improved_ucb(mu_hat, horizon, delta_tilde, B):
     """
     A function that implements the Improved UCB algorithm.
+    mu_hat: Empirical estimates of rewards for each arm
     horizon: Known horizon as input
-    arm_samples: A 2D array of shape (n_arms, horizon) containing the rewards for each arm at each time step.
+    delta_tilde: Gaps used by the elimination to set number of samples in a batch and
+     UCB buffer terms
+    B: List of arms that are not yet eliminated
     """
-    # Infer the number of arms from the list of rewards/costs
-    n_arms = arm_samples.shape[0]
-    # Array to hold empirical estimates of each arms reward expectation
-    mu_hat = np.zeros(n_arms)
-    # Number of times a certain arm is sampled, each arm is sampled once at start
-    nsamps = np.zeros(n_arms, dtype=np.int32)
-    # Now begin UCB based decisions
-    for t in range(1, horizon + 1):
-        # To initialise estimates from all arms
-        if t < n_arms + 1:
-            # sample the arm with (array) index (t - 1)
-            k = t - 1
-        else:
-            # Update ucb index value for all arms based on quantities from
-            # previous iteration and obtain arm index to sample
-            k = UCB(mu_hat, nsamps, t)
-        # Get 0/1 reward based on arm/channel choice
-        r = arm_samples[k, t - 1]
-        # Increment number of times kth arm sampled
-        nsamps[k] = nsamps[k] + 1
-        # Update empirical reward estimates, compute new empirical mean
-        mu_hat[k] = ((nsamps[k] - 1) * mu_hat[k] + r) / nsamps[k]
-        # Get the incremental expected quality regret
-        qual_reg_incr = max(0, min_reward - arm_reward_array[k])
-        # Get the incremental expected cost regret
-        cost_reg_incr = max(0, arm_cost_array[k] - c_opt)
-        # Update the expected quality regret
-        qual_reg += qual_reg_incr
-        # Update the expected cost regret
-        cost_reg += cost_reg_incr
-        # Record data at intervals of STEP in file
-        if t % STEP == 0:
-            # Convert nsamps array to a string for CSV output
-            nsamps_str = ';'.join(map(str, nsamps))
-
-            # Writing to standard output (you might want to write to a file instead)
-            sys.stdout.write(
-                "{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(
-                    al, rs, t, qual_reg, cost_reg, nsamps_str
-                )
-            )
+    # Variable to indicate that a new batch of sampling all arms in B
+    #  \lceil
+    return
 
 
 def random_argmin(arr):
