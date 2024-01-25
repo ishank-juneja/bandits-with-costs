@@ -1,18 +1,41 @@
 import numpy as np
-from math import log, sqrt
+from math import ceil, log, sqrt
 
 
-def improved_ucb(mu_hat, horizon, delta_tilde, B):
+def improved_ucb(mu_hat, nsamps, horizon, m, ongoing_round, delta_tilde, B, last_sampled):
     """
     A function that implements the Improved UCB algorithm.
+    https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
     mu_hat: Empirical estimates of rewards for each arm
+    nsamps: Number of times each arm has been sampled
     horizon: Known horizon as input
+    m: Index for the round/batch number of the algorithm
+    ongoing_round: Variable to indicate that an existing round is ongoing
     delta_tilde: Gaps used by the elimination to set number of samples in a batch and
      UCB buffer terms
     B: List of arms that are not yet eliminated
+    last_sampled: Arm that was sampled in the previous iteration
     """
-    # Variable to indicate that a new batch of sampling all arms in B
-    #  \lceil
+    # If a round is ongoing, don't test for arm elimination, and continue sampling arms
+    if ongoing_round:
+        # Recompute n_m for the current round m
+        n_m = ceil(2 * log(horizon * delta_tilde ** 2) / delta_tilde ** 2)
+        # Check the number of times the last_sampled arm has been sampled
+        if nsamps[last_sampled] == n_m:
+            # If the arm has been sampled n_m times, either move to the next arm in B_m or end the round
+            ongoing_round = False
+        # Sample the arm that was sampled in the previous iteration
+        k = last_sampled
+        # If the arm has been sampled n_m times, end the round
+        if nsamps[k] == n_m:
+            ongoing_round = False
+        return k, m, ongoing_round, delta_tilde, B, last_sampled
+    # If no round is ongoing, test for arm elimination and start a new round if needed
+    # Compute the buffer terms for UCB/LCB indices
+    buffer = np.sqrt(np.log(horizon * delta_tilde ** 2) / 2 * )
+    # Otherwise we must update the required parameters for the next round
+    # TODO: Whenever deletion of an arm happens, make sure to check if the mode should be changed to
+    #  Keep pulling the single arm until horizon budget is exhausted
     return
 
 

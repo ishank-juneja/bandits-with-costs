@@ -102,20 +102,27 @@ if __name__ == '__main__':
                 mu_hat = np.zeros(n_arms)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
                 nsamps = np.zeros(n_arms, dtype=np.int32)
-                # Initialize algorithm gap delta_tilde
-                delta_tilde_0 = 1.0
+                # Create and initialize variables to track delta_tilde, and B_0
+                delta_tilde = 1.0
                 # Create a list out of the indices of all the arms
-                B_0 = list(range(n_arms))
+                # We always ensure that any updated B remains sorted
+                B = list(range(n_arms))
+                # Ctr for the round number for the improved UCB algorithm
+                m = 0
+                # Variable to indicate that a round is ongoing and that we should not
+                #  update round related parameters yet
+                ongoing_round = False
+                # Variable to hold the arm in B_m that was most recently sampled
+                #  since the way the algorithm works, we need to keep sampling the same arm
+                #  until we have sampled it n_m times
+                last_sampled = 0
                 # Begin policy loop
                 for t in range(1, horizon + 1):
-                    # Create and initialize variables to track delta_tilde, and B_0
-                    delta_tilde = delta_tilde_0
-                    B = B_0.copy()
-                    # Pass the latest params to the policy and get the arm index to sample,
-                    # Receive the updated params for the next iteration
                     # Since the algorithm works in a phased/batched way, the quantities delta_tilde and B
                     #  will be updated occasionally like a step function
-                    k, delta_tilde, B = improved_ucb(mu_hat, horizon, delta_tilde, B)
+                    k, m, ongoing_round, delta_tilde, B, last_sampled = improved_ucb(mu_hat, nsamps, horizon, m,
+                                                                                     delta_tilde, ongoing_round, B,
+                                                                                     last_sampled)
                     # Do book-keeping for this policy, and receive all the params that were modified
                     arm_samples, nsamps, mu_hat, reg = do_bookkeeping(arm_samples, k, t, nsamps, mu_hat, reg, al, rs)
             else:
