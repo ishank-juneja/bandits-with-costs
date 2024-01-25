@@ -120,9 +120,11 @@ if __name__ == '__main__':
                 for t in range(1, horizon + 1):
                     # Since the algorithm works in a phased/batched way, the quantities delta_tilde and B
                     #  will be updated occasionally like a step function
-                    k, m, ongoing_round, delta_tilde, B, last_sampled = improved_ucb(mu_hat, nsamps, horizon, m,
+                    k, m, ongoing_round, delta_tilde, B = improved_ucb(mu_hat, nsamps, horizon, m,
                                                                                      delta_tilde, ongoing_round, B,
                                                                                      last_sampled)
+                    # Update the last sampled arm index
+                    last_sampled = k
                     # Do book-keeping for this policy, and receive all the params that were modified
                     arm_samples, nsamps, mu_hat, reg = do_bookkeeping(arm_samples, k, t, nsamps, mu_hat, reg, al, rs)
             else:
