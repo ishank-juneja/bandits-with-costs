@@ -21,7 +21,7 @@ in_name = in_name[:-4]
 pathlib.Path('results/plots/' + in_name).mkdir(parents=False, exist_ok=True)
 x_points = np.arange(args.STEP, int(args.horizon) + 1, args.STEP)
 y_points = np.zeros_like(x_points)
-selected = ['ucb']
+selected = ['ucb', 'improved-ucb']
 # Number of distinct algorithms used
 nalgos = len(selected)
 # Number of colors should be at least as many as number of LABELS
