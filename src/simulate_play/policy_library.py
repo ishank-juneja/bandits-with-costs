@@ -2,7 +2,7 @@ import numpy as np
 from math import ceil, log, sqrt
 
 
-def improved_ucb(mu_hat, nsamps, horizon, m, ongoing_round, delta_tilde, B, last_sampled):
+def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     """
     A function that implements the Improved UCB algorithm.
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
@@ -21,47 +21,65 @@ def improved_ucb(mu_hat, nsamps, horizon, m, ongoing_round, delta_tilde, B, last
     mu_hat: Empirical estimates of rewards for each arm
     nsamps: Number of times each arm has been sampled
     horizon: Known horizon as input
-    m: Index for the round/batch number of the algorithm
-    ongoing_round: Variable to indicate that an existing round is ongoing
     delta_tilde: Gaps used by the elimination to set number of samples in a batch and
      UCB buffer terms
     B: List of arms that are not yet eliminated
+    last_sampled: Index of the last sampled arm so that we know which arm to sampled next
+     in batched/rounded sampling
     """
     # Check if there is only one arm left in B_m
     if len(B) == 1:
-        # If so, keep returning that arm until the horizon for loop gets exhausted
+        # If so, keep returning that arm until the calling horizon for loop gets terminated
         k = B[0]
         # Returned parameters other than k are effectively don't cares
-        return k, m, ongoing_round, delta_tilde, B
+        return k, delta_tilde, B
     # Else if there is more than one arm and an ongoing round m, then keep
     #  batch sampling arms until n_m samples have been collected for each of them
-    elif len(B) > 1 and ongoing_round:
+    elif len(B) > 1:
         # Recompute n_m for the current round m
         n_m = ceil(2 * log(horizon * delta_tilde ** 2) / (delta_tilde ** 2) )
         # Check the number of times the last_sampled arm has been sampled
         if nsamps[last_sampled] < n_m:
             # If it has not been sampled n_m times, return it again with
             #  all other parameters unchanged
-            return last_sampled, m, ongoing_round, delta_tilde, B
+            return last_sampled, delta_tilde, B
         elif nsamps[last_sampled] == n_m:
             # If sampled n_m times, move to the next arm in B_m
             #  If there is no next arm, end the round
             if last_sampled == B[-1]:
-                # If the last sampled arm was the last arm in B_m, end the round
-                #  by updating the ongoing round flag and moving to the arm elimination phase
-                ongoing_round = False
+                # Round is complete, move to arm elimination phase
+                pass
             else:
                 # Else, move to the next arm in B_m
                 k = B[B.index(last_sampled) + 1]
                 # Return all other parameters unchanged
-                return k, m, ongoing_round, delta_tilde, B
+                return k, delta_tilde, B
     # Start arm elimination phase
     # Compute the buffer terms for UCB/LCB indices
     buffer = sqrt( log(horizon * delta_tilde ** 2) / (2 * n_m) )
-    # For all arms in B_m, check if the UCB of any is under the largest LCB of another arm
-    # TODO: pick up from here
-    # Otherwise we must update the required parameters for the next round
-    return
+    # Using mean and buffer, compute the LCB of all the active arms
+    active_lcb_list = [mu_hat[k] - buffer for k in B]
+
+    # Initialize a new list to hold the indices of the arms to keep
+    B_new = []
+
+    for arm_indices_k in B:
+        # Compute the UCB of arm k
+        ucb_k = mu_hat[arm_indices_k] + buffer
+        # Check if the UCB of arm k is under the LCB of any other arm
+        if ucb_k >= max(active_lcb_list):
+            # If not, add arm k to the new list
+            B_new.append(arm_indices_k)
+
+    # Replace the old list with the new list
+    B = B_new
+
+    # Update delta_tilde
+    delta_tilde = delta_tilde / 2
+    # Return package says sample the lowest index arm in the set of active arms
+    k = B[0]
+    # Return all other parameters
+    return k, delta_tilde, B
 
 
 def random_argmin(arr):

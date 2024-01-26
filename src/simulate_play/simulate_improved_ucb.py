@@ -107,11 +107,6 @@ if __name__ == '__main__':
                 # Create a list out of the indices of all the arms
                 # We always ensure that any updated B remains sorted
                 B = list(range(n_arms))
-                # Ctr for the round number for the improved UCB algorithm
-                m = 0
-                # Variable to indicate that a round is ongoing and that we should not
-                #  update round related parameters yet
-                ongoing_round = False
                 # Variable to hold the arm in B_m that was most recently sampled
                 #  since the way the algorithm works, we need to keep sampling the same arm
                 #  until we have sampled it n_m times
@@ -120,9 +115,7 @@ if __name__ == '__main__':
                 for t in range(1, horizon + 1):
                     # Since the algorithm works in a phased/batched way, the quantities delta_tilde and B
                     #  will be updated occasionally like a step function
-                    k, m, ongoing_round, delta_tilde, B = improved_ucb(mu_hat, nsamps, horizon, m,
-                                                                                     delta_tilde, ongoing_round, B,
-                                                                                     last_sampled)
+                    k, delta_tilde, B = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
                     # Update the last sampled arm index
                     last_sampled = k
                     # Do book-keeping for this policy, and receive all the params that were modified

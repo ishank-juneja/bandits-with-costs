@@ -14,7 +14,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/simulate_play/simulate_improved_ucb.py" />
-    <option name="PARAMETERS" value="-file data/bandit_instances/vanilla.txt -STEP 100 -horizon 50000 -nruns 10" />
+    <option name="PARAMETERS" value="-file data/bandit_instances/vanilla.txt -STEP 100 -horizon 500000 -nruns 10" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
