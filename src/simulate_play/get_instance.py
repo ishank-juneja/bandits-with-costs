@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def read_instance_from_file(file_path):
     """
     Create a dictionary of instance data from the MAB-CS bandit instance file at file_path.
@@ -48,6 +49,9 @@ if __name__ == '__main__':
     print("Arm Cost Array:", arm_cost_array)
     print("Reference Arm (ell):", ref_arm_ell)
     print("Subsidy Factor:", subsidy_factor)
+
+    # Print a blank line
+    print()
 
     # Example 2
     file_path = 'data/bandit_instances/vanilla.txt'

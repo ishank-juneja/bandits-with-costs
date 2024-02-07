@@ -2,12 +2,39 @@ import numpy as np
 from math import ceil, log, sqrt
 
 
+def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
+    """
+    A function that implements the Successive Pairwise Elimination algorithm from the notes
+    https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
+    ***********************
+    Through every execution of this function we sample a single arm
+    The single arm is either the arm with index equal to the episode number
+    Case 1: A single active arm is left in B_m
+    if so then we must sample that arm until horizon is exhausted
+    Case 2: Multiple arms are left in B_m and a round is ongoing
+    if so we check if the most recently sampled arm has been sampled n_m times
+    if not, we sample that arm again
+    if yes, we move to the arm with the next highest index in B_m if there is one
+    if there is no next arm in B_m, we end the round, and move to arm elimination ...
+    While eliminating arms, we use the criteria for eliminating an arm as given in the paper
+    and update the round number m, delta_tilde, and B_m accordingly
+    ***********************
+    :param mu_hat:
+    :param nsamps:
+    :param horizon:
+    :param delta_tilde:
+    :param B:
+    :param last_sampled:
+    :return:
+    """
+
+
 def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     """
     A function that implements the Improved UCB algorithm.
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
     ***********************
-    In every iteration of this function, we must sample an arm
+    Through every execution of this function we sample a single arm
     Case 1: A single active arm is left in B_m
     if so then we must sample that arm until horizon is exhausted
     Case 2: Multiple arms are left in B_m and a round is ongoing
