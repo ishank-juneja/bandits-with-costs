@@ -20,12 +20,12 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
     Comparisons in lines 14 and 18 of the algo block happen ...
     If the current call of the function was at the cusp of a new episode (candidate arm elimination occurs),
      then in the call we will perform the comparison and if,
-     (i) Arm j gets eliminated by arm ell, then we set next arm to be sampled to be j + 1 (j = 1 could equal ell
+     (i) Arm j gets eliminated by arm ell, then we set next arm to be sampled to be j + 1 (j + 1 could equal ell
      which is fine since if we have reached the end of the pack, we sample ell for the entire budget anyway)
      (ii) Arm ell gets eliminated by arm j, then we set next arm to be sampled to be j and set the proxy gap
      delta_tilde to be -1 to indicate that the least cost acceptable arm has been identified.
      It is the job of the calling function to recognize this and set the episode number to be -1
-     so that
+     so that the next iteration onwards the comparisons are not performed
     ***********************
     mu_hat_ell: Empirical estimates of rewards for each candidate arm and arm ell
      Therefore the length of mu_hat is ell
@@ -64,12 +64,30 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
         elif nsamps[ell] < n_m:
             # If ell has not been sampled n_m times, return it with all other parameters unchanged
             return ell, delta_tilde
-        # Else both arms have been sampled atleast n_m times, so move to the arm elimination phase
+        # Else both arms have been sampled at least n_m times, so move to the arm elimination phase
         else:
-            # Compute the buffer terms for UCB/LCB indices
+            # Compute the buffer terms for UCB/LCB
             buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
-            # Compare the UCB of arm \ell with the LCB of arm j
-            # TODO: pickup from here tomorrow morning ...
+            # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
+            if mu_hat[ell] + buffer < mu_hat[episode_num] - buffer:
+                # Set delta_ number to be -1 to indicate that the least cost acceptable
+                # arm has been identified, and return arm j for sampling
+                delta_tilde = -1.0 # From this caller infers that the comparisons are over
+                k = episode_num
+                return k, delta_tilde
+            elif mu_hat[episode_num] + buffer < mu_hat[ell] - buffer:
+                # Go to next episode
+                k = episode_num + 1
+                # Reset delta_tilde for the next episode
+                delta_tilde = 1.0
+                return k, delta_tilde
+            else:
+                # Continue with the next round of the same episode by updating delta_tilde
+                delta_tilde = delta_tilde / 2
+                # Set the next arm to be sampled to be arm j since we will certainly
+                #  need more samples from it whereas, we might not need more samples from ell immediately
+                k = episode_num
+                return episode_num, delta_tilde
 
 
 def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
