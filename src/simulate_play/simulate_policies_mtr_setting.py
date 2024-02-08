@@ -3,7 +3,7 @@ from src.simulate_play.policy_library import UCB, MTR_UCB
 from src.utils.utils import simulate_bandit_rewards
 import sys
 import argparse
-from src.simulate_play.get_instance import read_instance_from_file
+from src.instance_handling.get_instance import read_instance_from_file
 
 
 # Command line inputs

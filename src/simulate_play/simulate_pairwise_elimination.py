@@ -3,7 +3,7 @@ from src.utils.utils import simulate_bandit_rewards
 import sys
 import argparse
 from src.simulate_play.policy_library import improved_ucb, UCB
-from src.simulate_play.get_instance import read_instance_from_file
+from src.instance_handling.get_instance import read_instance_from_file
 
 
 # Command line inputs
@@ -80,7 +80,9 @@ if __name__ == '__main__':
             arm_samples = simulate_bandit_rewards(arm_reward_array, horizon)
             # Initialize cumulative regret for this run
             reg = 0.0
-            # UCB: Vanilla Upper Confidence Bound Sampling algorithm
+            # For every run of every algorithm, prepend the (t = 0, regret = 0, arm_samples = 0) data point
+            #  to the output file
+            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4}\n".format(al, rs, 0, reg, ';'.join(['0'] * n_arms)))
             if al == 'ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)

@@ -2,31 +2,74 @@ import numpy as np
 from math import ceil, log, sqrt
 
 
-def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
+def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last_sampled):
     """
     A function that implements the Successive Pairwise Elimination algorithm from the notes
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
     ***********************
     Through every execution of this function we sample a single arm
-    The single arm is either the arm with index equal to the episode number
-    Case 1: A single active arm is left in B_m
-    if so then we must sample that arm until horizon is exhausted
-    Case 2: Multiple arms are left in B_m and a round is ongoing
-    if so we check if the most recently sampled arm has been sampled n_m times
-    if not, we sample that arm again
-    if yes, we move to the arm with the next highest index in B_m if there is one
-    if there is no next arm in B_m, we end the round, and move to arm elimination ...
-    While eliminating arms, we use the criteria for eliminating an arm as given in the paper
-    and update the round number m, delta_tilde, and B_m accordingly
+    The round number m is not tracked explicitly, but instead it is tracked
+     implicitly using the algorithm's proxy gap tilde{Delta}
+    Case 1: All the episodes 1 through ell - 1 have been completed
+    if so, we simply sample the arm ell until the horizon budget is exhausted
+    Case 2: An episode j for evaluating the candidacy of arm with index j is ongoing
+    if so, we check if the last sampled arm has been sampled n_m times already
+    if not, sample that arm again,
+    if yes, sample the other of the two active arms until it has been sampled at least n_m times
+    if both arms have been sampled at least n_m times, we move to the arm elimination phase
+    Comparisons in lines 14 and 18 of the algo block happen ...
+    If the current call of the function was at the cusp of a new episode (candidate arm elimination occurs),
+     then in the call we will perform the comparison and if,
+     (i) Arm j gets eliminated by arm ell, then we set next arm to be sampled to be j + 1 (j = 1 could equal ell
+     which is fine since if we have reached the end of the pack, we sample ell for the entire budget anyway)
+     (ii) Arm ell gets eliminated by arm j, then we set next arm to be sampled to be j and set the proxy gap
+     delta_tilde to be -1 to indicate that the least cost acceptable arm has been identified.
+     It is the job of the calling function to recognize this and set the episode number to be -1
+     so that
     ***********************
-    :param mu_hat:
-    :param nsamps:
-    :param horizon:
-    :param delta_tilde:
-    :param B:
-    :param last_sampled:
-    :return:
+    mu_hat_ell: Empirical estimates of rewards for each candidate arm and arm ell
+     Therefore the length of mu_hat is ell
+    nsamps: Number of times each arm has been sampled
+    horizon: Known horizon as input
+    delta_tilde: Gaps used by the elimination to set number of samples in a batch and
+     UCB buffer terms, reset for both arm ell and candidate arm j at the start of
+     every new episode
+    :param episode_num: Index of the current episode, varies between 0 and ell - 1
+    :param last_sampled: The arm that was being sampled in the previous call to the function since
+     the same arm will be sampled until we accumulate n_m samples for it
+    :return: Index of the arm to be sampled, updated delta_tilde
     """
+    # Infer the maximum number of episodes from the length of mu_hat
+    ell = len(mu_hat)
+    # If episode ell has been hit in the simulation keep returning ell
+    if episode_num == ell:
+        return ell, delta_tilde
+    # If episode ell has not been hit, then check if the least cost acceptable arm has been identified
+    #  as indicated via an invalid episode number of -1
+    elif episode_num == -1:
+        # In this case the last sampled arm is the arm j that is the successful least cost candidate
+        #  and we keep returning it until the horizon budget is exhausted
+        return last_sampled, delta_tilde
+    # Else if the episode number is a regular valid episode number then assume that the
+    #  episode in question is on going
+    else:
+        # Recompute n_m for the current episode
+        n_m = ceil(2 * log(horizon * delta_tilde ** 2) / (delta_tilde ** 2))
+        # Check the number of times the episode_num candidate arm has been sampled
+        if nsamps[episode_num] < n_m:
+            # If it has not been sampled n_m times, return it again with
+            #  all other parameters unchanged
+            return episode_num, delta_tilde
+        # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
+        elif nsamps[ell] < n_m:
+            # If ell has not been sampled n_m times, return it with all other parameters unchanged
+            return ell, delta_tilde
+        # Else both arms have been sampled atleast n_m times, so move to the arm elimination phase
+        else:
+            # Compute the buffer terms for UCB/LCB indices
+            buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
+            # Compare the UCB of arm \ell with the LCB of arm j
+            # TODO: pickup from here tomorrow morning ...
 
 
 def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
@@ -35,6 +78,8 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
     ***********************
     Through every execution of this function we sample a single arm
+    The round number m is not tracked explicitly, but instead it is tracked
+     implicitly using the algorithm's proxy gap tilde{Delta}
     Case 1: A single active arm is left in B_m
     if so then we must sample that arm until horizon is exhausted
     Case 2: Multiple arms are left in B_m and a round is ongoing
@@ -44,6 +89,9 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     if there is no next arm in B_m, we end the round, and move to arm elimination ...
     While eliminating arms, we use the criteria for eliminating an arm as given in the paper
     and update the round number m, delta_tilde, and B_m accordingly
+    If the current call of the function was at the cusp of a new round then in the call
+     we will perform the elimination and then set arm k to be
+     the smallest index arm in the active set
     ***********************
     mu_hat: Empirical estimates of rewards for each arm
     nsamps: Number of times each arm has been sampled
@@ -53,6 +101,7 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     B: List of arms that are not yet eliminated
     last_sampled: Index of the last sampled arm so that we know which arm to sampled next
      in batched/rounded sampling
+    :return: Index of the arm to be sampled, updated delta_tilde, and updated B
     """
     # Check if there is only one arm left in B_m
     if len(B) == 1:
