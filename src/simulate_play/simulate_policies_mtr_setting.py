@@ -1,6 +1,6 @@
 import numpy as np
+from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 from src.simulate_play.policy_library import UCB, MTR_UCB
-from src.utils.utils import simulate_bandit_rewards
 import sys
 import argparse
 from src.instance_handling.get_instance import read_instance_from_file
@@ -8,7 +8,7 @@ from src.instance_handling.get_instance import read_instance_from_file
 
 # Command line inputs
 parser = argparse.ArgumentParser()
-parser.add_argument("-idx", action="store", dest="file")
+parser.add_argument("-file", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=50000)
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
@@ -16,8 +16,7 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-# algos = ['ucb', 'mtr-ucb']
-algos = ['improved-ucb-known-horizon']
+algos = ['ucb', 'mtr-ucb']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -30,23 +29,31 @@ if __name__ == '__main__':
     # Read the bandit instance from file
     instance_data = read_instance_from_file(in_file)
     arm_reward_array = instance_data.get('arm_reward_array', None)
+    # Abort if there is no arm_reward_array
+    if arm_reward_array is None:
+        raise ValueError("No arm_reward_array found in the input file")
     min_reward = instance_data.get('min_reward', None)[0]
+    # Abort if there is no min_reward
+    if min_reward is None:
+        raise ValueError("No min_reward found in the input file")
     arm_cost_array = instance_data.get('arm_cost_array', None)
-    # Assert that the number of arms and costs are the same
-    assert len(arm_reward_array) == len(arm_cost_array)
+    # Abort if there is no arm_cost_array
+    if arm_cost_array is None:
+        raise ValueError("No arm_cost_array found in the input file")
     # Infer the number of arms from the list of rewards/costs
     n_arms = len(arm_reward_array)
-    # Compute the quantities needed for quality and cost regret
+    # Compute the calibration quantities needed for quality and cost regret
+    # - - - - - - - - - - - - - - - -
     # Create a boolean array of arms that have reward >= min_reward
     acceptable_arms = arm_reward_array >= min_reward
     # Set costs of invalid arms to a high value
     cost_array_filter = np.where(acceptable_arms, arm_cost_array, np.inf)
-    # Get the index with the minimum cost
-    k_opt = np.argmin(cost_array_filter)
-    # Get the return of the optimal arm
-    mu_opt = arm_reward_array[k_opt]
+    # Get the tolerated action with the minimum cost against which we shall calibrate reward
+    k_calib = np.argmin(cost_array_filter)
+    mu_calib = min_reward
     # Get the cost of the optimal arm
-    c_opt = arm_cost_array[k_opt]
+    c_calib = arm_cost_array[k_calib]
+    # - - - - - - - - - - - - - - - -
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
@@ -73,31 +80,12 @@ if __name__ == '__main__':
                         # Update ucb index value for all arms based on quantities from
                         # previous iteration and obtain arm index to sample
                         k = UCB(mu_hat, nsamps, t)
-                    # Get 0/1 reward based on arm/channel choice
-                    r = arm_samples[k, t - 1]
-                    # Increment number of times kth arm sampled
-                    nsamps[k] = nsamps[k] + 1
-                    # Update empirical reward estimates, compute new empirical mean
-                    mu_hat[k] = ((nsamps[k] - 1) * mu_hat[k] + r) / nsamps[k]
-                    # Get the incremental expected quality regret
-                    qual_reg_incr = max(0, min_reward - arm_reward_array[k])
-                    # Get the incremental expected cost regret
-                    cost_reg_incr = max(0, arm_cost_array[k] - c_opt)
-                    # Update the expected quality regret
-                    qual_reg += qual_reg_incr
-                    # Update the expected cost regret
-                    cost_reg += cost_reg_incr
-                    # Record data at intervals of STEP in file
-                    if t % STEP == 0:
-                        # Convert nsamps array to a string for CSV output
-                        nsamps_str = ';'.join(map(str, nsamps))
-
-                        # Writing to standard output (you might want to write to a file instead)
-                        sys.stdout.write(
-                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(
-                                al, rs, t, qual_reg, cost_reg, nsamps_str
-                            )
-                        )
+                        # Do book-keeping for this policy, and receive all the params that were modified
+                        nsamps, mu_hat, qual_reg, cost_reg = (
+                            do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                        mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
+                                                        rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
+                                                        arm_cost_array=arm_cost_array, c_calib=c_calib))
             elif al == 'mtr-ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
@@ -113,31 +101,11 @@ if __name__ == '__main__':
                         # Update ucb index value for all arms based on quantities from
                         # previous iteration and obtain arm index to sample
                         k = MTR_UCB(mu_hat, nsamps, t, arm_cost_array, min_reward)
-                    # Get 0/1 reward based on arm/channel choice
-                    r = arm_samples[k, t - 1]
-                    # Increment number of times kth arm sampled
-                    nsamps[k] = nsamps[k] + 1
-                    # Update empirical reward estimates, compute new empirical mean
-                    mu_hat[k] = ((nsamps[k] - 1) * mu_hat[k] + r) / nsamps[k]
-                    # Get the incremental expected quality regret
-                    qual_reg_incr = max(0, min_reward - arm_reward_array[k])
-                    # Get the incremental expected cost regret
-                    cost_reg_incr = max(0, arm_cost_array[k] - c_opt)
-                    # Update the expected quality regret
-                    qual_reg += qual_reg_incr
-                    # Update the expected cost regret
-                    cost_reg += cost_reg_incr
-                    # Record data at intervals of STEP in file
-                    if t % STEP == 0:
-                        # Convert nsamps array to a string for CSV output
-                        nsamps_str = ';'.join(map(str, nsamps))
-
-                        # Writing to standard output (you might want to write to a file instead)
-                        sys.stdout.write(
-                            "{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(
-                                al, rs, t, qual_reg, cost_reg, nsamps_str
-                            )
-                        )
+                    nsamps, mu_hat, qual_reg, cost_reg = (
+                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                    mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
+                                                    rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
+                                                    arm_cost_array=arm_cost_array, c_calib=c_calib))
             else:
                 print("Invalid algorithm {0} selected_algos, ignored".format(al))
                 continue

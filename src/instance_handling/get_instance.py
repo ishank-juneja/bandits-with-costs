@@ -34,6 +34,11 @@ def read_instance_from_file(file_path):
                 raise ValueError("Arm cost array is not sorted in ascending order, rearrange bandit arms "
                                  "in instance file {0}.".format(file_path))
 
+        # Assert that arm_reward_array and arm_cost_array have the same length
+        if 'arm_cost_array' in data and len(data['arm_reward_array']) != len(data['arm_cost_array']):
+            raise ValueError("Arm reward array and arm cost array have different lengths in instance file {0}."
+                             .format(file_path))
+
         return data
 
 

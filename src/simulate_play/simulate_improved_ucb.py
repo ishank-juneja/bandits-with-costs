@@ -1,5 +1,5 @@
 import numpy as np
-from src.utils.utils import simulate_bandit_rewards
+from src.utils import do_bookkeeping_conventional, simulate_bandit_rewards
 import sys
 import argparse
 from src.simulate_play.policy_library import improved_ucb, UCB
@@ -25,54 +25,19 @@ nruns = args.nruns
 STEP = args.STEP
 
 
-def do_bookkeeping(arm_samples, k, t, nsamps, mu_hat, reg, al, rs):
-    """
-    arm_samples: NumPy array of shape (n_arms, horizon) of pre-sampled rewards for each arm at each time step.
-    k: The arm index to sample at time t
-    t: The current time step
-    nsamps: NumPy array of shape (n_arms,) containing the number of times each arm has been sampled.
-    mu_hat: NumPy array of shape (n_arms,) containing the empirical mean reward of each arm.
-    reg: The cumulative regret incurred so far.
-    al: The algorithm being simulated in string name
-    rs: The random seed being used for this run
-    A function to do book-keeping for all bandit algorithms, required params in the order they appear in this func.
-    """
-    # Get 0/1 reward based on arm/channel choice
-    # Indexing starts from 0, so subtract 1 from t
-    r = arm_samples[k, t - 1]
-    # Increment number of times kth arm sampled
-    nsamps[k] = nsamps[k] + 1
-    # Update empirical reward estimates, compute new empirical mean
-    mu_hat[k] = ((nsamps[k] - 1) * mu_hat[k] + r) / nsamps[k]
-    # Get the incremental expected regret
-    reg_incr = mu_opt - arm_reward_array[k]
-    # Update the expected regret
-    reg += reg_incr
-    # Record data at intervals of STEP in file
-    if t % STEP == 0:
-        # Convert nsamps array to a string for CSV output
-        nsamps_str = ';'.join(map(str, nsamps))
-
-        # Writing to standard output (you might want to write to a file instead)
-        sys.stdout.write(
-            "{0}, {1}, {2}, {3:.2f}, {4}\n".format(
-                al, rs, t, reg, nsamps_str
-            )
-        )
-    # Return all the params that were modified
-    return arm_samples, nsamps, mu_hat, reg
-
-
 if __name__ == '__main__':
-    # Read the bandit instance from file
+    # Read a regular/vanilla bandit instance with only rewards from file
     instance_data = read_instance_from_file(in_file)
     arm_reward_array = instance_data.get('arm_reward_array', None)
+    # Abort if there is no arm_reward_array
+    if arm_reward_array is None:
+        raise ValueError("No arm_reward_array found in the input file")
     # Infer the number of arms from the list of rewards/costs
     n_arms = len(arm_reward_array)
-    # Get the best arm
-    k_opt = np.argmax(arm_reward_array)
+    # Get the action against which we calibrate reward (here best arm)
+    k_calib = np.argmax(arm_reward_array)
     # Get the expected reward of the best arm
-    mu_opt = arm_reward_array[k_opt]
+    mu_calib = arm_reward_array[k_calib]
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
@@ -80,7 +45,7 @@ if __name__ == '__main__':
             arm_samples = simulate_bandit_rewards(arm_reward_array, horizon)
             # Initialize cumulative regret for this run
             reg = 0.0
-            # For every run of every algorithm, prepend the (t = 0, regret = 0, arm_samples = 0) data point
+            # For every run of every algorithm, prepend the (t = 0, regret = 0, nsamps = 0) data point
             #  to the output file
             sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4}\n".format(al, rs, 0, reg, ';'.join(['0'] * n_arms)))
             if al == 'ucb':
@@ -98,7 +63,9 @@ if __name__ == '__main__':
                         # Pass the latest params to the policy and get the arm index to sample
                         k = UCB(mu_hat, nsamps, t)
                     # Do book-keeping for this policy, and receive all the params that were modified
-                    arm_samples, nsamps, mu_hat, reg = do_bookkeeping(arm_samples, k, t, nsamps, mu_hat, reg, al, rs)
+                    nsamps, mu_hat, reg = do_bookkeeping_conventional(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                                      mu_hat=mu_hat, reg=reg, al=al, rs=rs,
+                                                                      arm_reward_array=arm_reward_array, mu_opt=mu_calib)
             elif al == 'improved-ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
@@ -121,6 +88,8 @@ if __name__ == '__main__':
                     # Update the last sampled arm index
                     last_sampled = k
                     # Do book-keeping for this policy, and receive all the params that were modified
-                    arm_samples, nsamps, mu_hat, reg = do_bookkeeping(arm_samples, k, t, nsamps, mu_hat, reg, al, rs)
+                    nsamps, mu_hat, reg = do_bookkeeping_conventional(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                                      mu_hat=mu_hat, reg=reg, al=al, rs=rs,
+                                                                      arm_reward_array=arm_reward_array, mu_opt=mu_calib)
             else:
                 raise ValueError(f"Unknown algorithm: {al}")
