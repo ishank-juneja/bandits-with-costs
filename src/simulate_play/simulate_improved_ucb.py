@@ -43,11 +43,15 @@ if __name__ == '__main__':
             # Set numpy random seed to make output deterministic for a given run
             np.random.seed(rs)
             arm_samples = simulate_bandit_rewards(arm_reward_array, horizon)
-            # Initialize cumulative regret for this run
-            reg = 0.0
+            # Initialize expected quality regret and expected cost regret
+            # Expected quality regret
+            qual_reg = 0.0
+            # Expected cost regret
+            cost_reg = 0.0
             # For every run of every algorithm, prepend the (t = 0, regret = 0, nsamps = 0) data point
             #  to the output file
-            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4}\n".format(al, rs, 0, reg, ';'.join(['0'] * n_arms)))
+            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
+                                                                             ';'.join(['0'] * n_arms)))
             if al == 'ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)

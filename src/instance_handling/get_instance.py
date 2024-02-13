@@ -65,7 +65,7 @@ if __name__ == '__main__':
     print()
 
     # Example 2
-    file_path = 'data/bandit_instances/vanilla.txt'
+    file_path = 'data/bandit_instances/no_cost_subsidy/I3.txt'
     instance_data = read_instance_from_file(file_path)
 
     instance_id = instance_data['instance_id']  # Required

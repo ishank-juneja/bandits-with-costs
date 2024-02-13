@@ -48,7 +48,7 @@ if __name__ == '__main__':
     acceptable_arms = arm_reward_array >= min_reward
     # Set costs of invalid arms to a high value
     cost_array_filter = np.where(acceptable_arms, arm_cost_array, np.inf)
-    # Get the tolerated action with the minimum cost against which we shall calibrate reward
+    # Get the tolerated action with the minimum cost against which we shall calibrate cost regret
     k_calib = np.argmin(cost_array_filter)
     mu_calib = min_reward
     # Get the cost of the optimal arm
@@ -64,6 +64,10 @@ if __name__ == '__main__':
             qual_reg = 0.0
             # Expected cost regret
             cost_reg = 0.0
+            # For every run of every algorithm, prepend the (t = 0, regret = 0, nsamps = 0) data point
+            #  to the output file
+            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
+                                                                             ';'.join(['0'] * n_arms)))
             # UCB: Vanilla Upper Confidence Bound Sampling algorithm
             if al == 'ucb':
                 # Array to hold empirical estimates of each arms reward expectation

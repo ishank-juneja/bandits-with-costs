@@ -5,5 +5,5 @@ The following fields are available
 - arm_reward_array[array]: Comma separated list of rewards for each arm [Required]
 - arm_cost_array[array]: If specified it is Comma separated list of costs for each arm [Optional]
 - min_reward[float]: If specified it is the minimum tolerated reward that quality regret is calibrated against [Optional]
-- ref_arm_ell[int]: If specified it is the arm index that quality regret is calibrated against [Optional]
+- ref_arm_ell[int]: If specified it is the arm index (0, ..., K - 1) that quality regret is calibrated against [Optional]
 - subsidy_factor[float]: If specified it is the subsidy factor as described in the Multi-Armed Bandits with Cost Subsidy Paper [Optional]

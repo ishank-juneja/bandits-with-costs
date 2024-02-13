@@ -27,29 +27,30 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
      It is the job of the calling function to recognize this and set the episode number to be -1
      so that the next iteration onwards the comparisons are not performed
     ***********************
-    mu_hat_ell: Empirical estimates of rewards for each candidate arm and arm ell
+    :param mu_hat: Empirical estimates of rewards for each candidate arm and arm ell
      Therefore the length of mu_hat is ell
-    nsamps: Number of times each arm has been sampled
-    horizon: Known horizon as input
-    delta_tilde: Gaps used by the elimination to set number of samples in a batch and
+    :param nsamps: Number of times each arm has been sampled
+    :param horizon: Known horizon as input
+    :param delta_tilde: Gaps used by the elimination to set number of samples in a batch and
      UCB buffer terms, reset for both arm ell and candidate arm j at the start of
      every new episode
     :param episode_num: Index of the current episode, varies between 0 and ell - 1
     :param last_sampled: The arm that was being sampled in the previous call to the function since
      the same arm will be sampled until we accumulate n_m samples for it
-    :return: Index of the arm to be sampled, updated delta_tilde
+    :return: Index of the arm to be sampled (k), updated delta_tilde, and updated episode_num
     """
-    # Infer the maximum number of episodes from the length of mu_hat
-    ell = len(mu_hat)
+    # Infer the index of the reference arm ell which is also the
+    #  the index of the last episode from the length of mu_hat
+    ell = len(mu_hat) - 1
     # If episode ell has been hit in the simulation keep returning ell
     if episode_num == ell:
-        return ell, delta_tilde
+        return ell, delta_tilde, episode_num
     # If episode ell has not been hit, then check if the least cost acceptable arm has been identified
     #  as indicated via an invalid episode number of -1
     elif episode_num == -1:
         # In this case the last sampled arm is the arm j that is the successful least cost candidate
         #  and we keep returning it until the horizon budget is exhausted
-        return last_sampled, delta_tilde
+        return last_sampled, delta_tilde, episode_num
     # Else if the episode number is a regular valid episode number then assume that the
     #  episode in question is on going
     else:
@@ -59,35 +60,40 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
         if nsamps[episode_num] < n_m:
             # If it has not been sampled n_m times, return it again with
             #  all other parameters unchanged
-            return episode_num, delta_tilde
+            k = episode_num
+            return k, delta_tilde, episode_num
         # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
         elif nsamps[ell] < n_m:
+            k = ell
             # If ell has not been sampled n_m times, return it with all other parameters unchanged
-            return ell, delta_tilde
-        # Else both arms have been sampled at least n_m times, so move to the arm elimination phase
+            return k, delta_tilde, episode_num
+        # Else both arms have been sampled at least n_m times, so move to the arm elimination phase.
+        # conclude the episode and move to the next round within the same episode (if no elimination occurs)
+        # or move to the next episode (if an elimination occurs)
         else:
             # Compute the buffer terms for UCB/LCB
             buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
             # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
             if mu_hat[ell] + buffer < mu_hat[episode_num] - buffer:
-                # Set delta_ number to be -1 to indicate that the least cost acceptable
-                # arm has been identified, and return arm j for sampling
-                delta_tilde = -1.0 # From this caller infers that the comparisons are over
+                # Set episode to -1 and return arm j for sampling
                 k = episode_num
-                return k, delta_tilde
+                episode_num = -1
+                return k, delta_tilde, episode_num
             elif mu_hat[episode_num] + buffer < mu_hat[ell] - buffer:
                 # Go to next episode
                 k = episode_num + 1
                 # Reset delta_tilde for the next episode
                 delta_tilde = 1.0
-                return k, delta_tilde
+                # Increment episode number
+                episode_num += 1
+                return k, delta_tilde, episode_num
             else:
                 # Continue with the next round of the same episode by updating delta_tilde
                 delta_tilde = delta_tilde / 2
                 # Set the next arm to be sampled to be arm j since we will certainly
                 #  need more samples from it whereas, we might not need more samples from ell immediately
                 k = episode_num
-                return episode_num, delta_tilde
+                return k, delta_tilde, episode_num
 
 
 def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):

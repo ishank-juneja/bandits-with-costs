@@ -1,3 +1,0 @@
-# Vanilla Bandit Instance, no cost subsidy
-instance_id: vanilla
-arm_reward_array: 0.6, 0.85, 0.8, 0.9
