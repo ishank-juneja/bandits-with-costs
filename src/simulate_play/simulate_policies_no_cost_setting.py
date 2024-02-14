@@ -38,20 +38,19 @@ if __name__ == '__main__':
     k_calib = np.argmax(arm_reward_array)
     # Get the expected reward of the best arm
     mu_calib = arm_reward_array[k_calib]
+    # Print a column headers for the output file
+    sys.stdout.write("algo,rs,horizon,reg,nsamps\n")
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
             np.random.seed(rs)
             arm_samples = simulate_bandit_rewards(arm_reward_array, horizon)
-            # Initialize expected quality regret and expected cost regret
-            # Expected quality regret
-            qual_reg = 0.0
+            # Initialize cumulative expected regret
             # Expected cost regret
-            cost_reg = 0.0
+            reg = 0.0
             # For every run of every algorithm, prepend the (t = 0, regret = 0, nsamps = 0) data point
             #  to the output file
-            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
-                                                                             ';'.join(['0'] * n_arms)))
+            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4}\n".format(al, rs, 0, reg, ';'.join(['0'] * n_arms)))
             if al == 'ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)

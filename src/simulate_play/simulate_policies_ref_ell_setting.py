@@ -16,8 +16,7 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-# algos = ['ucb', 'improved-ucb', 'pairwise-elimination']
-algos = ['pairwise-elimination']
+algos = ['ucb', 'improved-ucb', 'pairwise-elimination']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -80,6 +79,8 @@ if __name__ == '__main__':
     k_calib = np.argmin(cost_array_filter)
     # Get the cost of the best action
     c_calib = arm_cost_array[k_calib]
+    # Print a column headers for the output file
+    sys.stdout.write("algo,rs,horizon,qual_reg,cost_reg,nsamps\n")
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
@@ -108,12 +109,12 @@ if __name__ == '__main__':
                     else:
                         # Pass the latest params to the policy and get the arm index to sample
                         k = UCB(mu_hat, nsamps, t)
-                        # Do book-keeping for this policy, and receive all the params that were modified
-                        nsamps, mu_hat, qual_reg, cost_reg = (
-                            do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
-                                                        mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
-                                                        rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
-                                                        arm_cost_array=arm_cost_array, c_calib=c_calib))
+                    # Do book-keeping for this policy, and receive all the params that were modified
+                    nsamps, mu_hat, qual_reg, cost_reg = (
+                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                    mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
+                                                    rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
+                                                    arm_cost_array=arm_cost_array, c_calib=c_calib))
             elif al == 'improved-ucb':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
