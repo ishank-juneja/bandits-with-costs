@@ -4,7 +4,8 @@
 COMMON_PATH="results/run_logs/ref_ell"
 RESULTS_PATH="results/plots/ref_ell"
 
-ALGOS="ucb improved-ucb pairwise-elimination"
+#ALGOS="ucb improved-ucb pairwise-elimination"
+ALGOS="pairwise-elimination asymmetric-pe"
 
 # Hardcoded list of files using the common path variable
 FILES=(

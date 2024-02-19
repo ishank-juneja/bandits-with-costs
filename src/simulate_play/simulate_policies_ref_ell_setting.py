@@ -2,7 +2,7 @@ import numpy as np
 from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
-from src.simulate_play.policy_library import improved_ucb, pairwise_elimination, UCB
+from src.simulate_play.policy_library import improved_ucb, asymmetric_pe, pairwise_elimination, UCB
 from src.instance_handling.get_instance import read_instance_from_file
 
 
@@ -16,7 +16,8 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['ucb', 'improved-ucb', 'pairwise-elimination']
+# algos = ['ucb', 'improved-ucb', 'pairwise-elimination', 'asymmetric-pe']
+algos = ['pairwise-elimination', 'asymmetric-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -157,7 +158,7 @@ if __name__ == '__main__':
                 mu_hat = np.zeros(n_arms_pruned)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
                 nsamps = np.zeros(n_arms, dtype=np.int32)
-                # Create and initialize variables to track delta_tilde, and B_0
+                # Create and initialize variables to track delta_tilde
                 delta_tilde = 1.0
                 # The last sampled arm is useful information to make a quick decision about
                 #  the arm to be sampled in the very next round
@@ -172,6 +173,53 @@ if __name__ == '__main__':
                                                                    nsamps=nsamps, horizon=horizon,
                                                                    delta_tilde=delta_tilde, episode_num=episode,
                                                                    last_sampled=last_sampled)
+                    # Update the last sampled arm index
+                    last_sampled = k
+                    # Do book-keeping for this policy, and receive all the params that were modified
+                    nsamps, mu_hat, qual_reg, cost_reg = (
+                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
+                                                    mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
+                                                    rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
+                                                    arm_cost_array=arm_cost_array, c_calib=c_calib))
+            elif al == 'asymmetric-pe':
+                # Preprocessing (identical to regular pe)
+                # - - - - - - - -
+                # Perform pruning by removing arms with cost strictly higher than arm ell
+                # Get the smallest index of the array arm_cost_array where the cost becomes
+                #  strictly greater than arm_ell_cost, and then only include arms before that index
+                min_idx = prune_arms(arm_cost_array, ref_arm_ell)
+                # Update the number of arms for this algorithm based on this pruning
+                n_arms_pruned = min_idx
+                # Update arm_reward_array and arm_cost_array based on this pruning
+                arm_reward_array = arm_reward_array[:min_idx]
+                arm_cost_array = arm_cost_array[:min_idx]
+                # Update the arm_samples to be used to simulate rewards
+                arm_samples = arm_samples[:min_idx, :]
+                # - - - - - - - -
+
+                # Array to hold empirical estimates of each arms reward expectation
+                mu_hat = np.zeros(n_arms_pruned)
+                # Number of times a certain arm is sampled, each arm is sampled once at start
+                nsamps = np.zeros(n_arms, dtype=np.int32)
+                # Create and initialize variables to track delta_tilde_ell and delta_tilde
+                delta_tilde_ell = 1.0
+                delta_tilde = 1.0
+                # The last sampled arm is useful information to make a quick decision about
+                #  the arm to be sampled in the very next round
+                last_sampled = 0
+                # Variable to track episode number and by extension the candidate arm being processed
+                # Updated by the pairwise elimination algorithm function call
+                episode = 0
+                # Begin policy loop
+                for t in range(1, horizon + 1):
+                    # Receive the arm index to sample, and the updated delta_tilde, and episode number
+                    k, delta_tilde_ell, delta_tilde, episode = asymmetric_pe(ref_ell_idx=ref_arm_ell,
+                                                                             mu_hat=mu_hat, nsamps=nsamps,
+                                                                             horizon=horizon,
+                                                                             delta_tilde_ell=delta_tilde_ell,
+                                                                             delta_tilde=delta_tilde,
+                                                                             episode_num=episode,
+                                                                             last_sampled=last_sampled)
                     # Update the last sampled arm index
                     last_sampled = k
                     # Do book-keeping for this policy, and receive all the params that were modified

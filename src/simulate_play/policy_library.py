@@ -2,9 +2,92 @@ import numpy as np
 from math import ceil, log, sqrt
 
 
+def asymmetric_pe(ref_ell_idx, mu_hat, nsamps, horizon, delta_tilde_ell, delta_tilde, episode_num, last_sampled):
+    """
+    A function that implements the Asymmetric Pairwise Elimination algorithm from the notes
+    https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
+    ***********************
+    Description identical to that of pairwise_elimination except that we remain a different
+     delta_tilde for arm ell and the candidate arm j (and separate underlying implicit round numbers m_\ell and m_j)
+    ***********************
+    :param ref_ell_idx: Index of the reference arm ell
+    :param mu_hat: Empirical estimates of rewards for each candidate arm and arm ell
+     Therefore the length of mu_hat is ell
+    :param nsamps: Number of times each arm has been sampled
+    :param horizon: Known horizon as input
+    :param delta_tilde_ell: Algorithm's proxy gap tilde{Delta} for arm ell
+    :param delta_tilde: Gaps used by the elimination to set number of samples in a batch and
+     UCB buffer terms, reset for both arm ell and candidate arm j at the start of
+     every new episode
+    :param episode_num: Index of the current episode, varies between 0 and ell - 1
+    :param last_sampled: The arm that was being sampled in the previous call to the function since
+     the same arm will be sampled until we accumulate n_m samples for it
+    :return: Index of the arm to be sampled (k), updated delta_tilde_ell, updated delta_tilde, and updated episode_num
+    """
+    # If episode ref_ell_idx has been hit in the simulation keep returning ref_ell_idx
+    if episode_num == ref_ell_idx:
+        return ref_ell_idx, delta_tilde_ell, delta_tilde, episode_num
+    # If episode ell has not been hit, then check if the least cost acceptable arm has been identified
+    #  as indicated via an invalid episode number of -1
+    elif episode_num == -1:
+        # In this case the last sampled arm is the arm j that is the successful least cost candidate
+        #  and we keep returning it until the horizon budget is exhausted
+        return last_sampled, delta_tilde_ell, delta_tilde, episode_num
+    # Else if the episode number is a regular valid episode number then assume that the
+    #  episode in question is on going
+    else:
+        # Recompute n_m_ell and n_m for the current episode
+        n_m_ell = ceil(2 * log(horizon * delta_tilde_ell ** 2) / (delta_tilde_ell ** 2))
+        n_m = ceil(2 * log(horizon * delta_tilde ** 2) / (delta_tilde ** 2))
+        # Check the number of times the episode_num `indexed` candidate arm has been sampled
+        if nsamps[episode_num] < n_m:
+            # If it has not been sampled n_m times, return it again with
+            #  all other parameters unchanged
+            k = episode_num
+            return k, delta_tilde_ell, delta_tilde, episode_num
+        # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
+        elif nsamps[ref_ell_idx] < n_m_ell:
+            k = ref_ell_idx
+            # If ell has not been sampled n_m times, return it with all other parameters unchanged
+            return k, delta_tilde_ell, delta_tilde, episode_num
+        # Else both arms have been sampled at least n_m times, so move to the arm elimination phase.
+        # conclude the episode and move to the next round within the same episode (if no elimination occurs)
+        # or move to the next episode (if an elimination occurs)
+        else:
+            # Compute the buffer terms for UCB/LCB separately for arm ell and arm j
+            buffer_ell = sqrt(log(horizon * delta_tilde_ell ** 2) / (2 * n_m_ell))
+            buffer_j = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
+            # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
+            if mu_hat[ref_ell_idx] + buffer_ell < mu_hat[episode_num] - buffer_j:
+                # Set episode to -1 and return arm j for sampling
+                k = episode_num
+                episode_num = -1
+                return k, delta_tilde_ell, delta_tilde, episode_num
+            elif mu_hat[episode_num] + buffer_j < mu_hat[ref_ell_idx] - buffer_ell:
+                # Go to next episode
+                k = episode_num + 1
+                # Reset regular delta_tilde for the next episode, but leave delta_tilde_ell unchanged
+                delta_tilde = 1.0
+                # Increment episode number
+                episode_num += 1
+                return k, delta_tilde_ell, delta_tilde, episode_num
+            else:
+                # Continue with the next round of the same episode by updating delta_tilde
+                delta_tilde = delta_tilde / 2
+                # Check if this update leaves delta_tilde_ell larger than delta_tilde
+                if delta_tilde_ell > delta_tilde:
+                    # If so, update delta_tilde_ell as well
+                    delta_tilde_ell = delta_tilde_ell / 2
+                    assert delta_tilde_ell == delta_tilde # Sanity check on the evolution of the two delta_tildes
+                # Set the next arm to be sampled to be arm j since we will certainly
+                #  need more samples from it whereas, we might not need more samples from ell immediately
+                k = episode_num
+                return k, delta_tilde_ell, delta_tilde, episode_num
+
+
 def pairwise_elimination(ref_ell_idx, mu_hat, nsamps, horizon, delta_tilde, episode_num, last_sampled):
     """
-    A function that implements the Successive Pairwise Elimination algorithm from the notes
+    A function that implements the Pairwise Elimination algorithm from the notes
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
     ***********************
     Through every execution of this function we sample a single arm
@@ -54,7 +137,7 @@ def pairwise_elimination(ref_ell_idx, mu_hat, nsamps, horizon, delta_tilde, epis
     else:
         # Recompute n_m for the current episode
         n_m = ceil(2 * log(horizon * delta_tilde ** 2) / (delta_tilde ** 2))
-        # Check the number of times the episode_num candidate arm has been sampled
+        # Check the number of times the episode_num indexed candidate arm has been sampled
         if nsamps[episode_num] < n_m:
             # If it has not been sampled n_m times, return it again with
             #  all other parameters unchanged
@@ -112,8 +195,8 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     While eliminating arms, we use the criteria for eliminating an arm as given in the paper
     and update the round number m, delta_tilde, and B_m accordingly
     If the current call of the function was at the cusp of a new round then in the call
-     we will perform the elimination and then set arm k to be
-     the smallest index arm in the active set
+     we will perform the elimination and then set arm k to be the smallest index arm in the
+     active set (since we are going to need more samples from it)
     ***********************
     mu_hat: Empirical estimates of rewards for each arm
     nsamps: Number of times each arm has been sampled
@@ -164,9 +247,10 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     for arm_indices_k in B:
         # Compute the UCB of arm k
         ucb_k = mu_hat[arm_indices_k] + buffer
-        # Check if the UCB of arm k is under the LCB of any other arm
+        # Eliminate arms whose UCB has fallen below the largest LCB in the set of active arms by
+        #  keeping only the arms whose UCB is greater than the largest LCB
         if ucb_k >= max(active_lcb_list):
-            # If not, add arm k to the new list
+            # If not, keep arm k in the new list
             B_new.append(arm_indices_k)
 
     # Replace the old list with the new list

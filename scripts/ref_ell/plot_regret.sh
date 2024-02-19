@@ -4,7 +4,8 @@
 COMMON_PATH="results/run_logs/ref_ell"
 RESULTS_PATH="results/plots/ref_ell"
 
-ALGOS="ucb improved-ucb pairwise-elimination"
+#ALGOS="ucb improved-ucb pairwise-elimination"
+ALGOS="pairwise-elimination asymmetric-pe"
 
 # Hardcoded list of files using the common path variable
 FILES=(
@@ -21,5 +22,5 @@ for file in "${FILES[@]}"; do
      # Plot quality regret
     python src/plotting/plotter.py --log-file "$file" --algos $ALGOS --metric qual_reg --save-dir "$RESULTS_PATH"
     # Plot cost regret
-    python src/plotting/plotter.py --log-file "$file" --algos ucb improved-ucb pairwise-elimination --metric cost_reg  --save-dir "$RESULTS_PATH"
+    python src/plotting/plotter.py --log-file "$file" --algos $ALGOS --metric cost_reg  --save-dir "$RESULTS_PATH"
 done
