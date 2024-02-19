@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # Get the expected reward of the best arm
     mu_calib = arm_reward_array[k_calib]
     # Print a column headers for the output file
-    sys.stdout.write("algo,rs,horizon,reg,nsamps\n")
+    sys.stdout.write("algo,rs,time-step,reg,nsamps\n")
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run

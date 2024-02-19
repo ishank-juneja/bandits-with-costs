@@ -9,7 +9,7 @@ import pathlib
 # Command line input
 parser = argparse.ArgumentParser()
 parser.add_argument("--log-file", action="store", dest="file")
-parser.add_argument('--algorithms', type=str, nargs='+',
+parser.add_argument('--algos', type=str, nargs='+',
                     help='Algorithms for regret to be plotted')
 parser.add_argument('--metric', type=str, choices=['reg', 'qual_reg', 'cost_reg'],
 					help='Metric to be plotted rn.')
@@ -22,7 +22,7 @@ in_name = in_file.split('/')[-1].split('.')[0]
 # Ignore last 4 characters of log file name since they shall be _log
 in_name = in_name[:-4]
 # Get list of the algorithms to be plotted
-selected_algos = args.algorithms
+selected_algos = args.algos
 # Number of distinct algorithms used
 nalgos = len(selected_algos)
 
@@ -38,14 +38,14 @@ else:
 	COLORS = COLORS[:nalgos]
 # - - - - - - - - - - - -
 
-# Color Management
+# Data Reading and Preprocessing
 # - - - - - - - - - - - -
 # Read in the log file as a pandas dataframe
 bandit_data = pd.read_csv(in_file, sep=",")
 # Infer the horizon as the largest entry in the 'horizon' column
-horizon = bandit_data["horizon"].max()
+horizon = bandit_data["time-step"].max()
 # Infer the time-step size of the simulation as the difference between the first two entries in the 'horizon' column
-plot_step = bandit_data["horizon"].iloc[1] - bandit_data["horizon"].iloc[0]
+plot_step = bandit_data["time-step"].iloc[1] - bandit_data["time-step"].iloc[0]
 # Convert 'nsamps' from string to NumPy array
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 # - - - - - - - - - - - -
@@ -72,7 +72,7 @@ plt.figure(figsize=(10, 10))
 for index, label in enumerate(selected_algos):
 	algo_data = bandit_data[bandit_data["algo"] == label]
 	for i in range(len(y_points)):
-		y_points[i] = algo_data.loc[algo_data["horizon"] == x_points[i]][my_metric].mean()
+		y_points[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].mean()
 	plt.plot(x_points, y_points, color=COLORS[index], linewidth=3)
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir

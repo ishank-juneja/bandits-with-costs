@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="results/run_logs/mtr"
-RESULTS_PATH="results/plots/mtr"
+COMMON_PATH="results/run_logs/no_cost_subsidy"
+RESULTS_PATH="results/plots/no_cost_subsidy"
 
-ALGOS="ucb mtr-ucb"
+
+# Variables for algos
+ALGOS="ucb improved-ucb"
 
 # Hardcoded list of files using the common path variable
 FILES=(
@@ -19,5 +21,5 @@ FILES=(
 for file in "${FILES[@]}"; do
     echo "Plotting results for $file"
     # Plot quality regret
-    python src/plotting/arms_distribution.py --log-file "$file" --algos $ALGOS --save-dir "$RESULTS_PATH"
+    python src/plotting/plotter.py --log-file "$file" --algos $ALGOS --metric reg --save-dir "$RESULTS_PATH"
 done

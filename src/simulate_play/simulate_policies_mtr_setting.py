@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # Get the cost of the optimal arm
     c_calib = arm_cost_array[k_calib]
     # Print a column headers for the output file
-    sys.stdout.write("algo,rs,horizon,qual_reg,cost_reg,nsamps\n")
+    sys.stdout.write("algo,rs,time-step,qual_reg,cost_reg,nsamps\n")
     for al in algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
