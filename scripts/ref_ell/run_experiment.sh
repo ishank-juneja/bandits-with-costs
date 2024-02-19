@@ -5,11 +5,11 @@ COMMON_PATH="data/bandit_instances/ref_ell"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-#    "${COMMON_PATH}/I1.txt"
+    "${COMMON_PATH}/I1.txt"
     "${COMMON_PATH}/I2.txt"
-#    "${COMMON_PATH}/I3.txt"
-#    "${COMMON_PATH}/I4.txt"
-#    "${COMMON_PATH}/I5.txt"
+    "${COMMON_PATH}/I3.txt"
+    "${COMMON_PATH}/I4.txt"
+    "${COMMON_PATH}/I5.txt"
 )
 
 # Default parameters for the Python script

@@ -58,24 +58,19 @@ if __name__ == '__main__':
     ref_arm_ell = instance_data.get('ref_arm_ell', None)
     if ref_arm_ell is None:
         raise ValueError("No ref_arm_ell found in the input file")
-    # Perform pruning by removing arms with cost strictly higher than arm ell
     arm_ell_cost = arm_cost_array[ref_arm_ell]
-    # Get the smallest index of the array arm_cost_array where the cost becomes
-    #  strictly greater than arm_ell_cost, and then only include arms before that index
-    min_idx = prune_arms(arm_cost_array, ref_arm_ell)
-    arm_reward_array = arm_reward_array[:min_idx]
-    arm_cost_array = arm_cost_array[:min_idx]
-    # Infer the number of arms post pruning
+    # Infer the nominal number of arms without any pre-processing/pruning
     n_arms = len(arm_reward_array)
-    # The calibration for quality regret is then against the mean of this action
+
+    # Determine the expected return of the reference arm to calibrate quality regret
     mu_calib = arm_reward_array[ref_arm_ell]
-    # Cost regret is calibrated against the best action (least cost, return at least as good as ell)
-    # Identify the nest action as the least cost acceptable action
-    # Create a boolean array of arms that have reward >= mu_calib
+
+    # Determine the cost of the best action to calibrate cost regret
+    # Set the cost of all the un-acceptable arms to a high value
     acceptable_arms = arm_reward_array >= mu_calib
     # Set costs of invalid arms to a high value
     cost_array_filter = np.where(acceptable_arms, arm_cost_array, np.inf)
-    # Get the tolerated action with the minimum cost against which we shall calibrate cost regret
+    # Get the acceptable action with the minimum cost against which we shall calibrate cost regret
     k_calib = np.argmin(cost_array_filter)
     # Get the cost of the best action
     c_calib = arm_cost_array[k_calib]
@@ -143,6 +138,21 @@ if __name__ == '__main__':
                                                     rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
                                                     arm_cost_array=arm_cost_array, c_calib=c_calib))
             elif al == 'pairwise-elimination':
+                # Preprocessing
+                # - - - - - - - -
+                # Perform pruning by removing arms with cost strictly higher than arm ell
+                # Get the smallest index of the array arm_cost_array where the cost becomes
+                #  strictly greater than arm_ell_cost, and then only include arms before that index
+                min_idx = prune_arms(arm_cost_array, ref_arm_ell)
+                # Update the number of arms for this algorithm based on this pruning
+                n_arms = min_idx
+                # Update arm_reward_array and arm_cost_array based on this pruning
+                arm_reward_array = arm_reward_array[:min_idx]
+                arm_cost_array = arm_cost_array[:min_idx]
+                # Update the arm_samples to be used to simulate rewards
+                arm_samples = arm_samples[:min_idx, :]
+                # - - - - - - - -
+
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
@@ -171,3 +181,4 @@ if __name__ == '__main__':
                                                     arm_cost_array=arm_cost_array, c_calib=c_calib))
             else:
                 raise ValueError(f"Unknown algorithm: {al}")
+
