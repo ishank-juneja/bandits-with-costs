@@ -8,11 +8,11 @@ ALGOS="ucb improved-ucb pairwise-elimination"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-#    "${COMMON_PATH}/I1_log.csv"
+    "${COMMON_PATH}/I1_log.csv"
     "${COMMON_PATH}/I2_log.csv"
-#    "${COMMON_PATH}/I3_log.csv"
-#    "${COMMON_PATH}/I4_log.csv"
-#    "${COMMON_PATH}/I5_log.csv"
+    "${COMMON_PATH}/I3_log.csv"
+    "${COMMON_PATH}/I4_log.csv"
+    "${COMMON_PATH}/I5_log.csv"
 )
 
 # Loop through each file in the hardcoded list

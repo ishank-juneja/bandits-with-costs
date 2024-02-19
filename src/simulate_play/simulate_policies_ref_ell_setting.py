@@ -145,7 +145,7 @@ if __name__ == '__main__':
                 #  strictly greater than arm_ell_cost, and then only include arms before that index
                 min_idx = prune_arms(arm_cost_array, ref_arm_ell)
                 # Update the number of arms for this algorithm based on this pruning
-                n_arms = min_idx
+                n_arms_pruned = min_idx
                 # Update arm_reward_array and arm_cost_array based on this pruning
                 arm_reward_array = arm_reward_array[:min_idx]
                 arm_cost_array = arm_cost_array[:min_idx]
@@ -154,7 +154,7 @@ if __name__ == '__main__':
                 # - - - - - - - -
 
                 # Array to hold empirical estimates of each arms reward expectation
-                mu_hat = np.zeros(n_arms)
+                mu_hat = np.zeros(n_arms_pruned)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
                 nsamps = np.zeros(n_arms, dtype=np.int32)
                 # Create and initialize variables to track delta_tilde, and B_0
@@ -168,7 +168,8 @@ if __name__ == '__main__':
                 # Begin policy loop
                 for t in range(1, horizon + 1):
                     # Receive the arm index to sample, and the updated delta_tilde, and episode number
-                    k, delta_tilde, episode = pairwise_elimination(mu_hat=mu_hat, nsamps=nsamps, horizon=horizon,
+                    k, delta_tilde, episode = pairwise_elimination(ref_ell_idx=ref_arm_ell , mu_hat=mu_hat,
+                                                                   nsamps=nsamps, horizon=horizon,
                                                                    delta_tilde=delta_tilde, episode_num=episode,
                                                                    last_sampled=last_sampled)
                     # Update the last sampled arm index

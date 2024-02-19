@@ -2,7 +2,7 @@ import numpy as np
 from math import ceil, log, sqrt
 
 
-def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last_sampled):
+def pairwise_elimination(ref_ell_idx, mu_hat, nsamps, horizon, delta_tilde, episode_num, last_sampled):
     """
     A function that implements the Successive Pairwise Elimination algorithm from the notes
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
@@ -27,6 +27,7 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
      It is the job of the calling function to recognize this and set the episode number to be -1
      so that the next iteration onwards the comparisons are not performed
     ***********************
+    :param ref_ell_idx: Index of the reference arm ell
     :param mu_hat: Empirical estimates of rewards for each candidate arm and arm ell
      Therefore the length of mu_hat is ell
     :param nsamps: Number of times each arm has been sampled
@@ -39,12 +40,9 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
      the same arm will be sampled until we accumulate n_m samples for it
     :return: Index of the arm to be sampled (k), updated delta_tilde, and updated episode_num
     """
-    # Infer the index of the reference arm ell which is also the
-    #  the index of the last episode from the length of mu_hat
-    ell = len(mu_hat) - 1
-    # If episode ell has been hit in the simulation keep returning ell
-    if episode_num == ell:
-        return ell, delta_tilde, episode_num
+    # If episode ref_ell_idx has been hit in the simulation keep returning ref_ell_idx
+    if episode_num == ref_ell_idx:
+        return ref_ell_idx, delta_tilde, episode_num
     # If episode ell has not been hit, then check if the least cost acceptable arm has been identified
     #  as indicated via an invalid episode number of -1
     elif episode_num == -1:
@@ -63,8 +61,8 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
             k = episode_num
             return k, delta_tilde, episode_num
         # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
-        elif nsamps[ell] < n_m:
-            k = ell
+        elif nsamps[ref_ell_idx] < n_m:
+            k = ref_ell_idx
             # If ell has not been sampled n_m times, return it with all other parameters unchanged
             return k, delta_tilde, episode_num
         # Else both arms have been sampled at least n_m times, so move to the arm elimination phase.
@@ -74,12 +72,12 @@ def pairwise_elimination(mu_hat, nsamps, horizon, delta_tilde, episode_num, last
             # Compute the buffer terms for UCB/LCB
             buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
             # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
-            if mu_hat[ell] + buffer < mu_hat[episode_num] - buffer:
+            if mu_hat[ref_ell_idx] + buffer < mu_hat[episode_num] - buffer:
                 # Set episode to -1 and return arm j for sampling
                 k = episode_num
                 episode_num = -1
                 return k, delta_tilde, episode_num
-            elif mu_hat[episode_num] + buffer < mu_hat[ell] - buffer:
+            elif mu_hat[episode_num] + buffer < mu_hat[ref_ell_idx] - buffer:
                 # Go to next episode
                 k = episode_num + 1
                 # Reset delta_tilde for the next episode

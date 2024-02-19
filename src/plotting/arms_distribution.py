@@ -98,7 +98,7 @@ for idx, t in enumerate(t_points):
     for algo_index, label in enumerate(selected_algos):
         cur_data = bandit_data.loc[(bandit_data["algo"] == label) & (bandit_data["time-step"] == t)]
         if not cur_data.empty:
-            nsamps_array[algo_index, idx, :] = cur_data.iloc[0]['nsamps']
+                nsamps_array[algo_index, idx, :] = cur_data.iloc[0]['nsamps']
 # - - - - - - - - - - - -
 
 # Plot temporary frames for GIF
