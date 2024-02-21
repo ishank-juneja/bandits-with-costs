@@ -18,6 +18,7 @@ in_file = args.file
 # Policies to be simulated
 # algos = ['ucb', 'improved-ucb', 'pairwise-elimination', 'asymmetric-pe']
 algos = ['pairwise-elimination', 'asymmetric-pe']
+# algos = ['asymmetric-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over

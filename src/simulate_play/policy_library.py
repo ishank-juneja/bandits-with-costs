@@ -95,20 +95,20 @@ def pairwise_elimination(ref_ell_idx, mu_hat, nsamps, horizon, delta_tilde, epis
      implicitly using the algorithm's proxy gap tilde{Delta}
     Case 1: All the episodes 1 through ell - 1 have been completed
     if so, we simply sample the arm ell until the horizon budget is exhausted
-    Case 2: An episode j for evaluating the candidacy of arm with index j is ongoing
-    if so, we check if the last sampled arm has been sampled n_m times already
-    if not, sample that arm again,
-    if yes, sample the other of the two active arms until it has been sampled at least n_m times
+    Case 2: A candidate arm j has already been identified as the least cost acceptable arm
+    if so, we keep returning j until the horizon budget is exhausted
+    Case 3: An episode j for evaluating the candidacy of arm with index j is ongoing
+    if so, we check if the candidate arm j has been sampled n_m times already
+    if not, sample arm j until its n_m samples are accumulated
+    if yes, check if arm ell has been sampled n_m times already, and sample it if not
     if both arms have been sampled at least n_m times, we move to the arm elimination phase
     Comparisons in lines 14 and 18 of the algo block happen ...
     If the current call of the function was at the cusp of a new episode (candidate arm elimination occurs),
      then in the call we will perform the comparison and if,
      (i) Arm j gets eliminated by arm ell, then we set next arm to be sampled to be j + 1 (j + 1 could equal ell
      which is fine since if we have reached the end of the pack, we sample ell for the entire budget anyway)
-     (ii) Arm ell gets eliminated by arm j, then we set next arm to be sampled to be j and set the proxy gap
-     delta_tilde to be -1 to indicate that the least cost acceptable arm has been identified.
-     It is the job of the calling function to recognize this and set the episode number to be -1
-     so that the next iteration onwards the comparisons are not performed
+     (ii) Arm ell gets eliminated by arm j, then we set next arm to be sampled to be j, set the next episode
+     to be -1 to indicate that the least cost acceptable arm has been identified.
     ***********************
     :param ref_ell_idx: Index of the reference arm ell
     :param mu_hat: Empirical estimates of rewards for each candidate arm and arm ell
