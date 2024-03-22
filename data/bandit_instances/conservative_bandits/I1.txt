@@ -1,0 +1,4 @@
+# Instance 1
+instance_id: 001
+arm_reward_array: 0.1, 0.6, 0.3, 0.8, 0.9, 0.2
+min_reward: 0.6

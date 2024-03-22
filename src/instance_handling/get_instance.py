@@ -44,28 +44,7 @@ def read_instance_from_file(file_path):
 
 if __name__ == '__main__':
     # Example 1
-    file_path = 'data/bandit_instances/I1.txt'
-    instance_data = read_instance_from_file(file_path)
-
-    instance_id = instance_data['instance_id']  # Required
-    arm_reward_array = instance_data['arm_reward_array']  # Required
-    min_reward = instance_data.get('min_reward', 0.0)  # Optional, default to 0.0
-    arm_cost_array = instance_data.get('arm_cost_array', np.array([]))  # Optional, default to empty array
-    ref_arm_ell = instance_data.get('ref_arm_ell', -1)  # Optional, default to -1
-    subsidy_factor = instance_data.get('subsidy_factor', 0.0)  # Optional, default to 0.0
-
-    print("Instance ID:", instance_id)
-    print("Arm Reward Array:", arm_reward_array)
-    print("Minimum Reward:", min_reward)
-    print("Arm Cost Array:", arm_cost_array)
-    print("Reference Arm (ell):", ref_arm_ell)
-    print("Subsidy Factor:", subsidy_factor)
-
-    # Print a blank line
-    print()
-
-    # Example 2
-    file_path = 'data/bandit_instances/no_cost_subsidy/I3.txt'
+    file_path = 'data/bandit_instances/full_cost_subsidy/I1.txt'
     instance_data = read_instance_from_file(file_path)
 
     instance_id = instance_data['instance_id']  # Required

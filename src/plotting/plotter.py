@@ -89,16 +89,3 @@ plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
 plt.savefig(save_dir + "/{0}_{1}".format(in_name, my_metric) + ".png", bbox_inches="tight")
 plt.close()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
