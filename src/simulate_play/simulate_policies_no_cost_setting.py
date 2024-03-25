@@ -2,7 +2,7 @@ import numpy as np
 from src.utils import do_bookkeeping_conventional, simulate_bandit_rewards
 import sys
 import argparse
-from src.policy_library.policy_library import improved_ucb, UCB
+from src.policy_library import improved_ucb, UCB
 from src.instance_handling.get_instance import read_instance_from_file
 
 
