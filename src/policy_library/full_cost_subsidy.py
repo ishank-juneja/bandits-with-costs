@@ -36,9 +36,9 @@ def etc_cs(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
         # Compute an array of UCB buffer terms
         buffer = np.sqrt(2 * np.log(horizon) / nsamps)
         # Compute the UCB values for all arms
-        ucb_values = np.max(mu_hat + buffer, np.ones_like(mu_hat))
+        ucb_values = np.minimum(mu_hat + buffer, 1.0)
         # Compute the LCB values for all the arms
-        lcb_values = np.max(mu_hat - buffer, np.zeros_like(mu_hat))
+        lcb_values = np.maximum(mu_hat - buffer, 0.0)
         # Compute m_t for constructing feasible set as the arm with the
         #  highest LCB
         m_t = np.argmax(lcb_values)
@@ -78,8 +78,6 @@ def pe_cs(mu_hat, costs, nsamps, horizon, last_sampled, delta_tilde, B, episode,
         # Update the episode counter to 0 to be meaningful (B will no longer be updated, but episode_number shall be
         #  updated now)
         episode = 0
-        # Reset delta_tilde
-        delta_tilde = 1.0
         # Move on to the second phase using the arm chosen by improved UCB as reference
         reference_arm = B[0]
         # Manually set last sampled arm to be the cheapest arm, (first in the line-up of arms)

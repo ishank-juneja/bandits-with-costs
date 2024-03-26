@@ -9,14 +9,15 @@ from src.instance_handling.get_instance import read_instance_from_file
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
-parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
-parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=50000)
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
+parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=100)
+parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=500000)
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=2)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['ucb', 'improved-ucb']
+# algos = ['ucb', 'improved-ucb']
+algos = ['improved-ucb']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over

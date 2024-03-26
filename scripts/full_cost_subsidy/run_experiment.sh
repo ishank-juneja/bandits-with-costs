@@ -8,12 +8,13 @@ OUT_FILE_PATH="results/run_logs/full_cost_subsidy/"
 # Hardcoded list of files using the common path variable
 FILES=(
     "${COMMON_PATH}/I1.txt"
+    "${COMMON_PATH}/I2.txt"
 )
 
 # Default parameters for the Python script
 STEP=100
 HORIZON=400000
-NRUNS=10
+NRUNS=5
 
 # Loop through each file in the hardcoded list
 for file in "${FILES[@]}"; do

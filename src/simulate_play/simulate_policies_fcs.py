@@ -3,22 +3,22 @@ from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
 from src.instance_handling.get_instance import read_instance_from_file
-from src.policy_library import UCB, etc_cs, pe_cs
+from src.policy_library import etc_cs, pe_cs
 
 
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
-parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=50000)
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
+parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=500000)
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=2)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-algos = ['etc-cs', 'pe-cs']
-# algos = ['etc-cs']
+# algos = ['etc-cs', 'pe-cs']
+algos = ['pe-cs']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -70,7 +70,8 @@ if __name__ == '__main__':
             cost_reg = 0.0
             # For every run of every algorithm, prepend the (t = 0, qual_reg = 0, cost_reg = 0, nsamps = 0) data point
             #  to the output file
-            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,                                                           ';'.join(['0'] * n_arms)))
+            sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
+                                                                             ';'.join(['0'] * n_arms)))
             if al == 'etc-cs':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
@@ -83,6 +84,8 @@ if __name__ == '__main__':
                 for t in range(1, horizon + 1):
                     # Get arm to be sampled per the ETC-CS policy
                     k = etc_cs(mu_hat, arm_cost_array, nsamps, horizon, last_sampled, tau, alpha=subsidy_factor)
+                    # Update last_sampled
+                    last_sampled = k
                     # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
                     nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,
                                                                                      k=k, t=t, nsamps=nsamps,
@@ -114,6 +117,8 @@ if __name__ == '__main__':
                     # Get arm and mutable parameters per the PE-CS policy
                     k, delta_tilde, B, episode = pe_cs(mu_hat, arm_cost_array, nsamps, horizon, last_sampled, delta_tilde,
                                                         B, episode, alpha=subsidy_factor)
+                    # Update last sampled
+                    last_sampled = k
                     # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
                     nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,
                                                                                      k=k, t=t, nsamps=nsamps,
