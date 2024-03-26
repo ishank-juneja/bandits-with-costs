@@ -3,7 +3,7 @@ from src.policy_library.no_cost_subsidy import improved_ucb
 from src.policy_library.reference_ell_setting import pairwise_elimination
 
 
-def etc_cs(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
+def cs_etc(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
     """
     Implementation of the CS-ETC algorithm from the MAB-CS paper
     https://proceedings.mlr.press/v130/sinha21a.html
@@ -49,7 +49,7 @@ def etc_cs(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
         return np.argmin(costs[feasible_set])
 
 
-def pe_cs(mu_hat, costs, nsamps, horizon, last_sampled, delta_tilde, B, episode, alpha=0.0):
+def cs_pe(mu_hat, nsamps, horizon, last_sampled, delta_tilde, B, episode, reference_arm, alpha=0.0):
     """
     Our two phase algorithm to compare against the CS-ETC algorithm
     After the first phase is done, the calling loop for this function resets the parameters
@@ -63,6 +63,7 @@ def pe_cs(mu_hat, costs, nsamps, horizon, last_sampled, delta_tilde, B, episode,
     :param delta_tilde: Parameter to track the phase change in the PE algorithm
     :param B: List of arms that are still in contention
     :param episode: Counter to track the phase of the PE algorithm
+    :param reference_arm: Arm declared as the best arm by the imp-UCB phase
     :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
     :return:
     """
@@ -73,15 +74,6 @@ def pe_cs(mu_hat, costs, nsamps, horizon, last_sampled, delta_tilde, B, episode,
         return k, delta_tilde, B, episode
     # Else pick the best arm declared by imp UCB as reference and move onto phase 2
     else:
-        # Reset delta_tilde
-        delta_tilde = 1.0
-        # Update the episode counter to 0 to be meaningful (B will no longer be updated, but episode_number shall be
-        #  updated now)
-        episode = 0
-        # Move on to the second phase using the arm chosen by improved UCB as reference
-        reference_arm = B[0]
-        # Manually set last sampled arm to be the cheapest arm, (first in the line-up of arms)
-        last_sampled = 0
         # Run phase 2 PE code
         k, delta_tilde, episode = pairwise_elimination(reference_arm, mu_hat, nsamps, horizon, delta_tilde, episode,
                                                        last_sampled, alpha)

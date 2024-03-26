@@ -22,7 +22,7 @@ class GIFMaker:
     @staticmethod
     def cleanup_frames(frames_dir: str, extension: str = 'png'):
         """
-        Cleanup the frames from the tmp location once done making GIF
+        Cleanup the frames from the computer_generated location once done making GIF
         :return:
         """
         # Get rid of temp png files

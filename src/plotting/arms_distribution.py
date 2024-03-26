@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--log-file", action="store", dest="file")
 parser.add_argument('--algos', type=str, nargs='+',
                     help='Algorithms for which arm distributions are to be plotted')
-parser.add_argument('--save-dir', type=str, help='The directory to save the GIF and tmp frames in.')
+parser.add_argument('--save-dir', type=str, help='The directory to save the GIF and computer_generated frames in.')
 args = parser.parse_args()
 
 in_file = args.file
@@ -105,7 +105,7 @@ for idx, t in enumerate(t_points):
 # - - - - - - - - - - - -
 # Create temporary directory for frames
 save_dir = args.save_dir
-tmp_frames_dir = os.path.join(save_dir, "tmp")
+tmp_frames_dir = os.path.join(save_dir, "computer_generated")
 pathlib.Path(tmp_frames_dir).mkdir(parents=True, exist_ok=True)
 
 # Find the maximum value across all data points for setting y-axis limits

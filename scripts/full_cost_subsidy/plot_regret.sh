@@ -6,13 +6,12 @@ RESULTS_PATH="results/plots/full_cost_subsidy"
 
 #ALGOS="ucb improved-ucb pairwise-elimination"
 #ALGOS="ucb pairwise-elimination asymmetric-pe ref-arm-ell-UCB"
-ALGOS="etc-cs pe-cs"
+ALGOS="etc-cs"
 
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/I1_log.csv"
-    "${COMMON_PATH}/I2_log.csv"
+    "${COMMON_PATH}/I3_log.csv"
 )
 
 # Loop through each file in the hardcoded list
