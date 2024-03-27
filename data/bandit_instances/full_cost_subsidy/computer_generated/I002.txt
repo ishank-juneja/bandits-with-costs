@@ -1,0 +1,4 @@
+instance_id: FCS002
+arm_reward_array: 0.33, 0.5
+subsidy_factor: 0.1
+arm_cost_array: 0.0, 1.0

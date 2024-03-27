@@ -3,7 +3,7 @@ from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
 from src.instance_handling.get_instance import read_instance_from_file
-from src.policy_library import cs_etc, cs_pe
+from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
 
 
 # Command line inputs
@@ -18,7 +18,7 @@ in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
 # algos = ['etc-cs', 'pe-cs']
-algos = ['etc-cs']
+algos = ['cs-etc', 'cs-ucb', 'cs-ts']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -47,14 +47,15 @@ if __name__ == '__main__':
     # Compute the calibration quantities needed for quality and cost regret
     # - - - - - - - - - - - - - - - -
     # Create a boolean array of arms that have reward >= (1 - subsidy_factor) * max_reward
-    max_reward = np.max(arm_reward_array)
-    acceptable_arms = arm_reward_array >= (1 - subsidy_factor) * max_reward
+    max_reward = np.max(arm_reward_array)   # Largest return
+    # Compute the reward against Quality Regret is calibrated/calculated, called smallest tolerated reward
+    mu_calib = (1 - subsidy_factor) * max_reward
+    acceptable_arms = arm_reward_array >= mu_calib
     # Set costs of invalid arms to a high value
     cost_array_filter = np.where(acceptable_arms, arm_cost_array, np.inf)
     # Get the tolerated action with the minimum cost against which we shall calibrate cost regret
     k_calib = np.argmin(cost_array_filter)
-    # Compute the reward against Quality regret is calculated
-    mu_calib = (1 - subsidy_factor) * max_reward
+
     # Get the cost of the optimal arm
     c_calib = arm_cost_array[k_calib]
     # Print a column headers for the output file
@@ -72,7 +73,7 @@ if __name__ == '__main__':
             #  to the output file
             sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
                                                                              ';'.join(['0'] * n_arms)))
-            if al == 'etc-cs':
+            if al == 'cs-etc':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
                 # Array to hold how many times a certain arm is sampled
@@ -96,7 +97,42 @@ if __name__ == '__main__':
                                                                                      mu_calib=mu_calib,
                                                                                      arm_cost_array=arm_cost_array,
                                                                                      c_calib=c_calib)
-            elif al == 'pe-cs':
+            elif al == 'cs-ts':
+                # Array to hold empirical estimates of each arms reward expectation
+                mu_hat = np.zeros(n_arms)
+                # Array to hold how many times a certain arm is sampled
+                nsamps = np.zeros(n_arms, dtype=np.int32)
+                # Array to track number of successes and failures (TS Beta priors requires it)
+                s_arms = np.zeros(n_arms, dtype=np.int32)
+                f_arms = np.zeros(n_arms, dtype=np.int32)
+                for t in range(1, horizon + 1):
+                    # Get arm to be sampled per the CS-TS policy
+                    k = cs_ts(mu_hat, s_arms, f_arms, arm_cost_array, t, alpha=subsidy_factor)
+                    # Retrieve the pre-computed reward for this arm at this time-step
+                    rew = arm_samples[k, t-1]
+                    # Update s and f arrays manually here
+                    s_arms[k] += rew
+                    f_arms[k] += (1 - rew)
+                    # Leave the rest to the book-keeping function
+                    nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP, arm_samples, k, t, nsamps,
+                                                                                     mu_hat, qual_reg, cost_reg, al, rs,
+                                                                                     arm_reward_array, mu_calib,
+                                                                                     arm_cost_array, c_calib)
+            elif al == 'cs-ucb':
+                # Array to hold empirical estimates of each arms reward expectation
+                mu_hat = np.zeros(n_arms)
+                # Array to hold how many times a certain arm is sampled
+                nsamps = np.zeros(n_arms, dtype=np.int32)
+                for t in range(1, horizon + 1):
+                    # Get arm to be sampled per the CS-TS policy
+                    k = cs_ucb(mu_hat, arm_cost_array, t, nsamps, horizon, alpha=subsidy_factor)
+                    # Leave the rest to the book-keeping function
+                    nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP, arm_samples, k, t, nsamps,
+                                                                                     mu_hat, qual_reg, cost_reg, al, rs,
+                                                                                     arm_reward_array, mu_calib,
+                                                                                     arm_cost_array, c_calib)
+
+            elif al == 'cs-pe':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
                 # Array to hold how many times a certain arm is sampled
@@ -111,8 +147,8 @@ if __name__ == '__main__':
                 #  until we have sampled it n_m times
                 last_sampled = 0    # For both imp UCB and PE
                 episode = -1 # For PE, initially when in phase 1, episode is meaningless
-                reference_arm = -1 # For PE, initially when in phase 1, reference_arm is meaningless
                 # Later once phase 2 starts episode numbers become meaningful
+                reference_arm = -1 # For PE, initially when in phase 1, reference_arm is meaningless
                 # Begin policy loop
                 for t in range(1, horizon + 1):
                     # Get arm and mutable parameters per the PE-CS policy
