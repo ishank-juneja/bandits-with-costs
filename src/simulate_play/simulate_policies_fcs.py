@@ -9,9 +9,9 @@ from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
-parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1)
+parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=50)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=5000)
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=2)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file

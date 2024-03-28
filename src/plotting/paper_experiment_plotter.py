@@ -57,11 +57,6 @@ y_points = np.zeros((nalgos, num_files))
 
 # Iterate over all the .csv files present in this folder
 for file_idx, in_file in enumerate(sorted_files):
-	# Extract out just file name sans extension
-	in_name_raw = in_file.name.split('.')[0]
-	# Ignore last 4 characters of log file name since they shall be _log
-	in_name = in_name_raw[:-4]
-
 	# Data Reading and Preprocessing
 	# - - - - - - - - - - - -
 	# Read in the log file as a pandas dataframe
@@ -106,5 +101,5 @@ plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
 # - - - - - - - - - - - -
 
 # Save figure
-plt.savefig(save_dir + "/{0}_{1}".format(in_name, my_metric) + ".png", bbox_inches="tight")
+plt.savefig(save_dir + "/{0}_{1}".format("mab_cs_paper_experiment", my_metric) + ".png", bbox_inches="tight")
 plt.close()

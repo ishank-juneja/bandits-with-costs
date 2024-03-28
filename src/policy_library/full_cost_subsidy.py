@@ -35,7 +35,7 @@ def cs_ucb(mu_hat, costs, t, nsamps, horizon, alpha=0.0):
         # Receive all the indices of feasible arms
         feasible_arms = np.where(I_ucb > (1 - alpha) * I_ucb[m_t])[0]
         # Determine the value of the cheapest cost in the feasible set
-        min_cost = np.min(feasible_arms)
+        min_cost = np.min(costs[feasible_arms])
         # Get all the indices in original array where the cost
         #  equals min_cost
         min_cost_indices = np.where(costs == min_cost)[0]
@@ -63,7 +63,7 @@ def cs_ts(mu_hat, s_arms, f_arms, costs, t, alpha=0.0):
     # Infer the number of arms
     n_arms = len(mu_hat)
     # Array to hold the observed samples_raw
-    samples_raw = np.zeros_like(s_arms)
+    samples_raw = np.zeros_like(s_arms, dtype=np.float32)
     # Initially sample all arms at-least once, then jump into the
     #  the cost-subsidy style decision rules
     if t < n_arms + 1:
@@ -80,7 +80,7 @@ def cs_ts(mu_hat, s_arms, f_arms, costs, t, alpha=0.0):
         # Receive all the indices of the feasible arms
         feasible_arms = np.where(samples > (1 - alpha) * samples[m_t])[0]
         # Determine the cost of the cheapest arm in the set of feasible arms
-        min_cost = np.min(feasible_arms)
+        min_cost = np.min(costs[feasible_arms])
         # Get all the feasible indices that can match this cost
         min_cost_indices = np.where(costs == min_cost)[0]
         # Select a random index among these min cost indices
