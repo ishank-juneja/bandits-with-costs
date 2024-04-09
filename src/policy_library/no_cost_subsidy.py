@@ -13,7 +13,8 @@ def UCB(p_estimates, nsamps, t):
     return k
 
 
-def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: np.array=None):
+def improved_ucb(mu_hat: np.array, nsamps: np.array, horizon: int, delta_tilde: float, B: list, last_sampled: int,
+                 omega: np.array=None):
     """
     A function that implements the Improved UCB algorithm.
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
@@ -34,23 +35,23 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: n
      we will perform the elimination and then set arm k to be the smallest index arm in the
      active set (since we are going to need more samples from it)
     ***********************
-    mu_hat: Empirical estimates of rewards for each arm
-    nsamps: Number of times each arm has been sampled
-    horizon: Known horizon as input
+    mu_hat: Array of floats, Empirical estimates of rewards for each arm
+    nsamps: Array of ints, Number of times each arm has been sampled
+    horizon:  Known horizon as input
     delta_tilde: Gaps used by the elimination to set number of samples in a batch and
      UCB buffer terms
-    B: List of arms that are not yet eliminated
+     B: List of arm indices that are active / not yet eliminated
     last_sampled: Index of the last sampled arm so that we know which arm to sampled next
      in batched/rounded sampling
      omega: An array to hold the final round to which an arm being eliminated survived
-    :return: Index of the arm to be sampled, updated delta_tilde, and updated B
+    :return: Index of the arm to be sampled, updated delta_tilde, updated B, and omega
     """
     # Check if there is only one arm left in B_m
     if len(B) == 1:
         # If so, keep returning that arm until the calling horizon for loop gets terminated
         k = B[0]
         # Returned parameters other than k are effectively don't cares
-        return k, delta_tilde, B
+        return k, delta_tilde, B, omega
     # Else if there is more than one arm and an ongoing round m, then keep
     #  batch sampling arms until n_m samples have been collected for each of them
     elif len(B) > 1:
@@ -60,7 +61,7 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: n
         if nsamps[last_sampled] < n_m:
             # If it has not been sampled n_m times, return it again with
             #  all other parameters unchanged
-            return last_sampled, delta_tilde, B
+            return last_sampled, delta_tilde, B, omega
         elif nsamps[last_sampled] == n_m:
             # If sampled n_m times, move to the next arm in B_m
             #  If there is no next arm, end the round
@@ -71,7 +72,7 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: n
                 # Else, move to the next arm in B_m
                 k = B[B.index(last_sampled) + 1]
                 # Return all other parameters unchanged
-                return k, delta_tilde, B
+                return k, delta_tilde, B, omega
     # Start arm elimination phase
     # Compute the buffer terms for UCB/LCB indices
     buffer = sqrt( log(horizon * delta_tilde ** 2) / (2 * n_m) )
@@ -99,8 +100,8 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: n
     B = B_new
 
     # Update delta_tilde
-    delta_tilde = delta_tilde / 2
+    delta_tilde_new = delta_tilde / 2
     # Return package says sample the lowest index arm in the set of active arms
     k = B[0]
     # Return all other parameters
-    return k, delta_tilde, B
+    return k, delta_tilde_new, B, omega

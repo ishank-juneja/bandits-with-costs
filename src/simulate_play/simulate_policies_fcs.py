@@ -17,8 +17,8 @@ args = parser.parse_args()
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-# algos = ['etc-cs', 'pe-cs']
-algos = ['cs-etc', 'cs-ucb', 'cs-ts']
+# algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+algos = ['cs-etc', 'cs-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -153,18 +153,21 @@ if __name__ == '__main__':
                 # Begin policy loop
                 for t in range(1, horizon + 1):
                     # Get arm and mutable parameters per the PE-CS policy
-                    k, delta_tilde, B_new, episode = cs_pe(mu_hat, nsamps, horizon, last_sampled, delta_tilde, B,
-                                                           episode, alpha=subsidy_factor, omega=omega)
+                    k, delta_tilde_next, B_next, episode_next = cs_pe(mu_hat, nsamps, horizon, last_sampled, delta_tilde,
+                                                                     B, episode, alpha=subsidy_factor, omega=omega)
                     # If B reduces to 1 arm, then phase 1 is complete
                     # Perform all the one-time reset actions
-                    if len(B_new) == 1 and len(B) > 1:
-                        delta_tilde = 1.0
-                        episode = 0
-                        reference_arm = B_new[0]    # The only arm left in B_new
+                    if len(B_next) == 1 and len(B) > 1:
+                        # Manually override the next variables in case the transition from phase 1 to phase 2
+                        #  has been reached
+                        delta_tilde_next = 1.0
+                        episode_next = 0
+                        reference_arm = B_next[0]    # The only arm left in B_new
                         last_sampled = 0
-                    # Update B to be the new B
-                    B = B_new
-                    # Update last sampled
+                    # Update existing variables to the returned variables before book-keeping
+                    delta_tilde = delta_tilde_next
+                    episode = episode_next
+                    B = B_next
                     last_sampled = k
                     # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
                     nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,

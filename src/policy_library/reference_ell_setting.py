@@ -167,7 +167,7 @@ def pairwise_elimination_for_cs_pe(ref_ell_idx: int, mu_hat: np.array, nsamps: n
         # At the start, if we have the number of samples of the candidate arm as
         #  equal to n_m, then it means that no further samples are needed before the next
         #  elimination check and round number increment
-        if nsamps[episode_num] == n_m:push
+        if nsamps[episode_num] == n_m:
             # Compute the buffer terms for UCB/LCB
             buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
             # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
@@ -184,25 +184,24 @@ def pairwise_elimination_for_cs_pe(ref_ell_idx: int, mu_hat: np.array, nsamps: n
                 # Increment episode number
                 episode_num += 1
                 return k, delta_tilde, episode_num
-            else:
-                # Continue with the next round of the same episode by updating delta_tilde
-                delta_tilde = delta_tilde / 2
-                # Set the next arm to be sampled to be arm j since we will certainly
-                #  need more samples from it whereas, we might not need more samples from ell immediately
-                k = episode_num
-                return k, delta_tilde, episode_num
+                # Check the number of times the episode_num indexed candidate arm has been sampled
+        elif nsamps[episode_num] < n_m:
+            # If it has not been sampled n_m times, return it again with
+            #  all other parameters unchanged
+            k = episode_num
+            return k, delta_tilde, episode_num
+        # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
+        elif nsamps[ref_ell_idx] < n_m:
+            k = ref_ell_idx
+            # If ell has not been sampled n_m times, return it with all other parameters unchanged
+            return k, delta_tilde, episode_num
         else:
-            # Check the number of times the episode_num indexed candidate arm has been sampled
-            if nsamps[episode_num] < n_m:
-                # If it has not been sampled n_m times, return it again with
-                #  all other parameters unchanged
-                k = episode_num
-                return k, delta_tilde, episode_num
-            # Else arm j (episode_num) must have been sampled n_m times already, so check samples of ell
-            elif nsamps[ref_ell_idx] < n_m:
-                k = ref_ell_idx
-                # If ell has not been sampled n_m times, return it with all other parameters unchanged
-                return k, delta_tilde, episode_num
+            # Continue with the next round of the same episode by updating delta_tilde
+            delta_tilde = delta_tilde / 2
+            # Set the next arm to be sampled to be arm j since we will certainly
+            #  need more samples from it whereas, we might not need more samples from ell immediately
+            k = episode_num
+            return k, delta_tilde, episode_num
 
 
 def pairwise_elimination(ref_ell_idx: int, mu_hat: np.array, nsamps: np.array, horizon: int, delta_tilde: float,

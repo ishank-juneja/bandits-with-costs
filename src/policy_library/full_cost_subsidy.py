@@ -2,7 +2,7 @@ from math import log
 import numpy as np
 from numpy.random import beta
 from src.policy_library.no_cost_subsidy import improved_ucb
-from src.policy_library.reference_ell_setting import pairwise_elimination
+from src.policy_library.reference_ell_setting import pairwise_elimination_for_cs_pe
 from src.policy_library.utils import *
 
 
@@ -31,20 +31,20 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, d
     # Check if there are still more than 1 arms left, if so, run phase 1 again
     if len(B) > 1:
         # Run phase 1 Improved-UCB elimination phase code
-        k, delta_tilde_new, B_new = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
+        k, delta_tilde_new, B_new, omega = bai(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
     else:
         # There is no change to the set of active arms (in fact we are in phase 2, and notion of active arms is gone)
         B_new = B
     # Actually sample the prescription made by phase 1, only if there remain to be more than 1 arms in B_new
     if len(B_new) > 1:
-        return k, delta_tilde, B_new, episode
+        return k, delta_tilde_new, B_new, episode # Only entered when k has been set by the return value of bai
     # Else pick the best arm declared by imp UCB as reference and move onto phase 2
     else:
         # Infer the reference arm as the only arm in B_new
         ref_arm = B_new[0]
         # Run phase 2 PE code
-        k, delta_tilde_new, episode_new = pairwise_elimination(ref_arm, mu_hat, nsamps, horizon, delta_tilde, episode,
-                                                               last_sampled, omega, alpha)
+        k, delta_tilde_new, episode_new = pairwise_elimination_for_cs_pe(ref_arm, mu_hat, nsamps, horizon, delta_tilde,
+                                                                         episode, last_sampled, omega, alpha)
         return k, delta_tilde_new, B_new, episode_new
 
 

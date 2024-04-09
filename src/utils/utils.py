@@ -89,8 +89,9 @@ def do_bookkeeping_conventional(STEP, arm_samples, k, t, nsamps, mu_hat, reg, al
     return nsamps, mu_hat, reg
 
 
-def do_bookkeeping_cost_subsidy(STEP, arm_samples, k, t, nsamps, mu_hat, qual_reg, cost_reg, al, rs,
-                                arm_reward_array, mu_calib, arm_cost_array, c_calib):
+def do_bookkeeping_cost_subsidy(STEP: int, arm_samples: np.array, k: int, t: int, nsamps: np.array, mu_hat: np.array,
+                                qual_reg: float, cost_reg: float, al: str, rs: int, arm_reward_array: np.array,
+                                mu_calib: float, arm_cost_array, c_calib):
     """
     STEP: The step-interval at which data is recorded
     arm_samples: NumPy array of shape (n_arms, horizon) of pre-sampled rewards for each arm at each time step.
