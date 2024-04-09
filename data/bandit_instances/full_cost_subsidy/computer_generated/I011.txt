@@ -1,4 +1,4 @@
 instance_id: FCS011
-arm_reward_array: 0.60, 0.5
+arm_reward_array: 0.5, 0.60
 subsidy_factor: 0.1
-arm_cost_array: 0.0, 1.0
+arm_cost_array: 1.0, 0.0

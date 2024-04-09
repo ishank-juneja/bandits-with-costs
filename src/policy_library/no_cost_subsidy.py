@@ -13,7 +13,7 @@ def UCB(p_estimates, nsamps, t):
     return k
 
 
-def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
+def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega: np.array=None):
     """
     A function that implements the Improved UCB algorithm.
     https://www.overleaf.com/project/6502fd4306f4b073aa6bd809
@@ -42,6 +42,7 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     B: List of arms that are not yet eliminated
     last_sampled: Index of the last sampled arm so that we know which arm to sampled next
      in batched/rounded sampling
+     omega: An array to hold the final round to which an arm being eliminated survived
     :return: Index of the arm to be sampled, updated delta_tilde, and updated B
     """
     # Check if there is only one arm left in B_m
@@ -80,6 +81,7 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
     # Initialize a new list to hold the indices of the arms to keep
     B_new = []
 
+    # Iterate over the surviving indices
     for arm_indices_k in B:
         # Compute the UCB of arm k
         ucb_k = mu_hat[arm_indices_k] + buffer
@@ -88,6 +90,10 @@ def improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled):
         if ucb_k >= max(active_lcb_list):
             # If not, keep arm k in the new list
             B_new.append(arm_indices_k)
+        elif omega is not None:
+            # if an arm is being eliminated and if omega is a parameter that was passed
+            #  then set the round in which the arm was eliminated
+            omega[arm_indices_k] = delta_tilde
 
     # Replace the old list with the new list
     B = B_new

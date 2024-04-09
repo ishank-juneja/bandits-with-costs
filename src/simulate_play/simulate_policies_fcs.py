@@ -79,12 +79,12 @@ if __name__ == '__main__':
                 # Array to hold how many times a certain arm is sampled
                 nsamps = np.zeros(n_arms, dtype=np.int32)
                 # Compute the value of tau based on the horizon and number of arms
-                tau = int(np.ceil(horizon / n_arms) ** (2 / 3))
+                tau = 2 * int(np.ceil((horizon / n_arms) ** (2 / 3)))
                 # Initialize last_sampled with index 0 arm
                 last_sampled = 0
                 for t in range(1, horizon + 1):
                     # Get arm to be sampled per the ETC-CS policy
-                    k = cs_etc(mu_hat, arm_cost_array, nsamps, horizon, last_sampled, tau, alpha=subsidy_factor)
+                    k = cs_etc(mu_hat, t, arm_cost_array, nsamps, horizon, last_sampled, tau, alpha=subsidy_factor)
                     # Update last_sampled
                     last_sampled = k
                     # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
@@ -137,6 +137,9 @@ if __name__ == '__main__':
                 mu_hat = np.zeros(n_arms)
                 # Array to hold how many times a certain arm is sampled
                 nsamps = np.zeros(n_arms, dtype=np.int32)
+                # Array to hold the final/terminal delta_tilde value for each arm in the bai phase
+                # We use final delta_tilde values instead of the final round number (one-to-one map)
+                omega = np.zeros(n_arms, dtype=np.float32)
                 # Create and initialize variables to track delta_tilde, and B_0
                 delta_tilde = 1.0 # For both imp UCB and PE
                 # Create a list out of the indices of all the arms
@@ -147,13 +150,11 @@ if __name__ == '__main__':
                 #  until we have sampled it n_m times
                 last_sampled = 0    # For both imp UCB and PE
                 episode = -1 # For PE, initially when in phase 1, episode is meaningless
-                # Later once phase 2 starts episode numbers become meaningful
-                reference_arm = -1 # For PE, initially when in phase 1, reference_arm is meaningless
                 # Begin policy loop
                 for t in range(1, horizon + 1):
                     # Get arm and mutable parameters per the PE-CS policy
                     k, delta_tilde, B_new, episode = cs_pe(mu_hat, nsamps, horizon, last_sampled, delta_tilde, B,
-                                                           episode, reference_arm, alpha=subsidy_factor)
+                                                           episode, alpha=subsidy_factor, omega=omega)
                     # If B reduces to 1 arm, then phase 1 is complete
                     # Perform all the one-time reset actions
                     if len(B_new) == 1 and len(B) > 1:

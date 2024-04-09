@@ -6,6 +6,48 @@ from src.policy_library.reference_ell_setting import pairwise_elimination
 from src.policy_library.utils import *
 
 
+# Set a more apt name for the improved_ucb function in the cs-pe context
+bai = improved_ucb
+
+
+def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, delta_tilde: float, B: list,
+          episode: int, omega: np.array, alpha: float=0.0):
+    """
+    Our two phase algorithm to compare against the CS-ETC algorithm
+    After the first phase is done, the calling loop for this function resets the parameters
+    so that they are ready for the next phase
+    :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
+    :param nsamps: Array (int) to hold the number of times each arm has been sampled
+    :param horizon: Known horizon budget as input
+    :param last_sampled: Index of the last arm sampled to check if already sampled sufficiently
+    :param delta_tilde: The iterative gap used by the algorithm
+    :param B: List of active arms
+    :param episode: Counter to track the phase of the PE algorithm
+    :param omega: Array (float) to hold the iterative gap value at which every arm is eliminated in phase 1
+        used to find where to pick back up from in phase 2
+    :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
+    :return:
+    """
+    # Check if there are still more than 1 arms left, if so, run phase 1 again
+    if len(B) > 1:
+        # Run phase 1 Improved-UCB elimination phase code
+        k, delta_tilde_new, B_new = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
+    else:
+        # There is no change to the set of active arms (in fact we are in phase 2, and notion of active arms is gone)
+        B_new = B
+    # Actually sample the prescription made by phase 1, only if there remain to be more than 1 arms in B_new
+    if len(B_new) > 1:
+        return k, delta_tilde, B_new, episode
+    # Else pick the best arm declared by imp UCB as reference and move onto phase 2
+    else:
+        # Infer the reference arm as the only arm in B_new
+        ref_arm = B_new[0]
+        # Run phase 2 PE code
+        k, delta_tilde_new, episode_new = pairwise_elimination(ref_arm, mu_hat, nsamps, horizon, delta_tilde, episode,
+                                                               last_sampled, omega, alpha)
+        return k, delta_tilde_new, B_new, episode_new
+
+
 def cs_ucb(mu_hat, costs, t, nsamps, horizon, alpha=0.0):
     """
     Implementation of the CS-UCB algorithm as described in the MAB-CS paper
@@ -27,7 +69,7 @@ def cs_ucb(mu_hat, costs, t, nsamps, horizon, alpha=0.0):
         k = t - 1
     else:
         # Compute the UCB index associated with every single arm
-        I_ucb_raw = mu_hat + np.sqrt(2 * log(horizon) / nsamps)
+        I_ucb_raw = mu_hat + np.sqrt(2 * log(t) / nsamps)
         I_ucb = np.minimum(I_ucb_raw, 1.0)
         # Identify the arm with the highest index and treat it as the proxy for the
         #  best arm
@@ -38,9 +80,11 @@ def cs_ucb(mu_hat, costs, t, nsamps, horizon, alpha=0.0):
         min_cost = np.min(costs[feasible_arms])
         # Get all the indices in original array where the cost
         #  equals min_cost
-        min_cost_indices = np.where(costs == min_cost)[0]
+        min_cost_indices_overall = np.where(costs == min_cost)[0]
+        # Take the intersection of feasible arms and minimum cost indices overall
+        feasible_min_cost_indices = np.intersect1d(feasible_arms, min_cost_indices_overall)
         # Select a random index among these min cost indices
-        k = np.random.choice(min_cost_indices)
+        k = np.random.choice(feasible_min_cost_indices)
     return k
 
 
@@ -82,13 +126,15 @@ def cs_ts(mu_hat, s_arms, f_arms, costs, t, alpha=0.0):
         # Determine the cost of the cheapest arm in the set of feasible arms
         min_cost = np.min(costs[feasible_arms])
         # Get all the feasible indices that can match this cost
-        min_cost_indices = np.where(costs == min_cost)[0]
+        min_cost_indices_overall = np.where(costs == min_cost)[0]
+        # Take the intersection of feasible arms and minimum cost indices overall
+        feasible_min_cost_indices = np.intersect1d(feasible_arms, min_cost_indices_overall)
         # Select a random index among these min cost indices
-        k = np.random.choice(min_cost_indices)
+        k = np.random.choice(feasible_min_cost_indices)
     return k
 
 
-def cs_etc(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
+def cs_etc(mu_hat, t, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
     """
     Implementation of the CS-ETC algorithm from the MAB-CS paper
     https://proceedings.mlr.press/v130/sinha21a.html
@@ -97,6 +143,7 @@ def cs_etc(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
      and then exploits per its own exploitation rules
     ***********************
     :param mu_hat: Array to hold the empirical return estimates mu_hat
+    :param t: Time step
     :param costs: Array to hold the costs of sampling each arm
     :param nsamps: Array to hold the number of times each arm has been sampled
     :param horizon: Known horizon budget as input
@@ -119,7 +166,7 @@ def cs_etc(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
     # Move onto the UCB phase of the algorithm
     else:
         # Compute an array of UCB buffer terms
-        buffer = np.sqrt(2 * np.log(horizon) / nsamps)
+        buffer = np.sqrt(2 * log(t) / nsamps)
         # Compute the UCB values for all arms
         ucb_values = np.minimum(mu_hat + buffer, 1.0)
         # Compute the LCB values for all the arms
@@ -129,37 +176,14 @@ def cs_etc(mu_hat, costs, nsamps, horizon, last_sampled, tau, alpha=0.0):
         m_t = np.argmax(lcb_values)
         # Construct the feasible set as the arm-indices of arms having
         #  UCB above the subsidized LCB of arm m_t
-        feasible_set = np.where(ucb_values > (1 - alpha) * lcb_values[m_t])[0]
-        # Return the least cost arm in the feasible set to be sampled
-        return np.argmin(costs[feasible_set])
-
-
-def cs_pe(mu_hat, nsamps, horizon, last_sampled, delta_tilde, B, episode, reference_arm, alpha=0.0):
-    """
-    Our two phase algorithm to compare against the CS-ETC algorithm
-    After the first phase is done, the calling loop for this function resets the parameters
-    so that they are ready for the next phase
-    param mu_hat: Array to hold the empirical return estimates mu_hat
-    :param costs: Array to hold the costs of sampling each arm
-    :param nsamps: Array to hold the number of times each arm has been sampled
-    :param horizon: Known horizon budget as input
-    :param last_sampled: Index of the last arm sampled to check if
-     already sampled sufficiently
-    :param delta_tilde: Parameter to track the phase change in the PE algorithm
-    :param B: List of arms that are still in contention
-    :param episode: Counter to track the phase of the PE algorithm
-    :param reference_arm: Arm declared as the best arm by the imp-UCB phase
-    :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
-    :return:
-    """
-    # Run phase 1 Improved-UCB elimination phase code
-    k, delta_tilde, B = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
-    # Check if there is > 1 arm, if so continue using phase 1
-    if len(B) != 1:
-        return k, delta_tilde, B, episode
-    # Else pick the best arm declared by imp UCB as reference and move onto phase 2
-    else:
-        # Run phase 2 PE code
-        k, delta_tilde, episode = pairwise_elimination(reference_arm, mu_hat, nsamps, horizon, delta_tilde, episode,
-                                                       last_sampled, alpha)
-        return k, delta_tilde, B, episode
+        feasible_arms = np.where(ucb_values > (1 - alpha) * lcb_values[m_t])[0]
+        # Get the minimum cost among feasible arms
+        min_cost = np.min(costs[feasible_arms])
+        # Get all the indices of the original array where the cost of the arm is equal to the
+        #  minimum cost
+        min_cost_indices_overall = np.where(costs == min_cost)[0]
+        # Take intersection of feasible arms and minimum cost indices overall
+        feasible_min_cost_indices = np.intersect1d(feasible_arms, min_cost_indices_overall)
+        # Select a random index among these min cost indices
+        k = np.random.choice(feasible_min_cost_indices)
+        return k

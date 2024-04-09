@@ -8,7 +8,7 @@ OUT_FILE_PATH="results/run_logs/full_cost_subsidy/computer_generated/"
 # Default parameters for the Python script
 STEP=1
 HORIZON=5000
-NRUNS=10
+NRUNS=5
 
 # Use find with a while read loop to process each file
 find "${COMMON_PATH}" -name "*.txt" | while read file; do
