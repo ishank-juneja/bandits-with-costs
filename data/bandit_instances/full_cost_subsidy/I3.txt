@@ -1,5 +1,5 @@
 # Instance 3
 instance_id: FCS003
-arm_reward_array: 0.3, 0.5
-subsidy_factor: 0.1
+arm_reward_array: 0.31, 0.5
+subsidy_factor: 0.4
 arm_cost_array: 0.0, 1.0

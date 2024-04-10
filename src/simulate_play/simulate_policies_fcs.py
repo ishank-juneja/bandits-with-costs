@@ -11,14 +11,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=50)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=5000)
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=2)
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=10)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
 # algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
-algos = ['cs-etc', 'cs-pe']
+algos = ['cs-ts']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -29,7 +29,7 @@ STEP = args.STEP
 
 if __name__ == '__main__':
     # Read the bandit instance from file
-    instance_data = read_instance_from_file(in_file)
+    instance_data = read_instance_from_file(in_file);
     arm_reward_array = instance_data.get('arm_reward_array', None)
     # Abort if there is no arm_reward_array
     if arm_reward_array is None:

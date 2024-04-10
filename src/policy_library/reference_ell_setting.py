@@ -162,29 +162,28 @@ def pairwise_elimination_for_cs_pe(ref_ell_idx: int, mu_hat: np.array, nsamps: n
     # Else if the episode number is a regular valid episode number then assume that the
     #  episode in question is on going
     else:
-        # Recompute n_m for the current episode
+        # Recompute n_m for the current round of the current episode
         n_m = ceil(2 * log(horizon * delta_tilde ** 2) / (delta_tilde ** 2))
+        # Recompute the buffer terms for UCB/LCB on every function call
+        buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
         # At the start, if we have the number of samples of the candidate arm as
         #  equal to n_m, then it means that no further samples are needed before the next
         #  elimination check and round number increment
-        if nsamps[episode_num] == n_m:
-            # Compute the buffer terms for UCB/LCB
-            buffer = sqrt(log(horizon * delta_tilde ** 2) / (2 * n_m))
-            # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
-            if ref_rew_multiplier * mu_hat[ref_ell_idx] + buffer < mu_hat[episode_num] - buffer:
-                # Set episode to -1 and return arm j for sampling
-                k = episode_num
-                episode_num = -1
-                return k, delta_tilde, episode_num
-            elif mu_hat[episode_num] + buffer < ref_rew_multiplier * mu_hat[ref_ell_idx] - buffer:
-                # Go to next episode
-                k = episode_num + 1
-                # Reset delta_tilde for the next episode
-                delta_tilde = omega
-                # Increment episode number
-                episode_num += 1
-                return k, delta_tilde, episode_num
-                # Check the number of times the episode_num indexed candidate arm has been sampled
+        # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
+        if (nsamps[episode_num] == n_m) and (ref_rew_multiplier * mu_hat[ref_ell_idx] + buffer < mu_hat[episode_num] - buffer):
+            # Set episode to -1 and return arm j for sampling
+            k = episode_num
+            episode_num = -1
+            return k, delta_tilde, episode_num
+        elif (nsamps[episode_num] == n_m) and (mu_hat[episode_num] + buffer < ref_rew_multiplier * mu_hat[ref_ell_idx] - buffer):
+            # Go to next episode
+            k = episode_num + 1
+            # Reset delta_tilde for the next episode
+            delta_tilde = omega
+            # Increment episode number
+            episode_num += 1
+            return k, delta_tilde, episode_num
+        # Check the number of times the episode_num indexed candidate arm has been sampled
         elif nsamps[episode_num] < n_m:
             # If it has not been sampled n_m times, return it again with
             #  all other parameters unchanged
