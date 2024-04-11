@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="results/run_logs/ref_ell"
+COMMON_PATH="results/_run_logs/ref_ell"
 RESULTS_PATH="results/plots/ref_ell"
 
 #ALGOS="ucb improved-ucb pairwise-elimination"

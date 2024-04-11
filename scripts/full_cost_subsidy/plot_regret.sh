@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="results/run_logs/full_cost_subsidy"
+COMMON_PATH="results/_run_logs/full_cost_subsidy"
 RESULTS_PATH="results/plots/full_cost_subsidy"
 
 #ALGOS="ucb improved-ucb pairwise-elimination"
 #ALGOS="ucb pairwise-elimination asymmetric-pe ref-arm-ell-UCB"
-ALGOS="etc-cs"
-
+#ALGOS="cs-ts"
+ALGOS="cs-ts cs-etc cs-ucb cs-pe"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/I3_log.csv"
+    "${COMMON_PATH}/I5_log.csv"
 )
 
 # Loop through each file in the hardcoded list

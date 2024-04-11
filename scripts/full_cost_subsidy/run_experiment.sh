@@ -3,17 +3,17 @@
 # Common path variable
 COMMON_PATH="data/bandit_instances/full_cost_subsidy"
 # Result path variable
-OUT_FILE_PATH="results/run_logs/full_cost_subsidy/"
+OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/I3.txt"
+    "${COMMON_PATH}/I5.txt"
 )
 
 # Default parameters for the Python script
-STEP=1
-HORIZON=5000
-NRUNS=10
+STEP=1000
+HORIZON=500000
+NRUNS=50
 
 # Loop through each file in the hardcoded list
 for file in "${FILES[@]}"; do

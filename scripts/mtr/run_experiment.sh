@@ -25,5 +25,5 @@ for file in "${FILES[@]}"; do
     filename=$(basename -- "$file")
     logname="${filename%.*}_log.csv"
 
-    python src/simulate_play/simulate_policies_mtr_setting.py -file "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS > "results/run_logs/mtr/$logname"
+    python src/simulate_play/simulate_policies_mtr_setting.py -file "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS > "results/_run_logs/mtr/$logname"
 done

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="results/run_logs/no_cost_subsidy"
+COMMON_PATH="results/_run_logs/no_cost_subsidy"
 RESULTS_PATH="results/plots/no_cost_subsidy"
 
 

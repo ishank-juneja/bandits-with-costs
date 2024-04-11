@@ -17,8 +17,8 @@ args = parser.parse_args()
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-# algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
-algos = ['cs-ts']
+algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+# algos = ['cs-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -29,7 +29,7 @@ STEP = args.STEP
 
 if __name__ == '__main__':
     # Read the bandit instance from file
-    instance_data = read_instance_from_file(in_file);
+    instance_data = read_instance_from_file(in_file)
     arm_reward_array = instance_data.get('arm_reward_array', None)
     # Abort if there is no arm_reward_array
     if arm_reward_array is None:

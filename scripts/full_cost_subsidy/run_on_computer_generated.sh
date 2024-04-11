@@ -3,7 +3,7 @@
 # Common path variable
 COMMON_PATH="data/bandit_instances/full_cost_subsidy/computer_generated/"
 # Result path variable
-OUT_FILE_PATH="results/run_logs/full_cost_subsidy/computer_generated/"
+OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/computer_generated/"
 
 # Default parameters for the Python script
 STEP=1

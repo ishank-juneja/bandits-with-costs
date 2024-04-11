@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="results/run_logs/mtr"
+COMMON_PATH="results/_run_logs/mtr"
 RESULTS_PATH="results/plots/mtr"
 
 # Variables for algos and metric

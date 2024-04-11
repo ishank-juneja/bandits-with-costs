@@ -31,7 +31,7 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, d
     # Check if there are still more than 1 arms left, if so, run phase 1 again
     if len(B) > 1:
         # Run phase 1 Improved-UCB elimination phase code
-        k, delta_tilde_new, B_new, omega = bai(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
+        k, delta_tilde_new, B_new, omega = bai(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega)
     else:
         # There is no change to the set of active arms (in fact we are in phase 2, and notion of active arms is gone)
         B_new = B

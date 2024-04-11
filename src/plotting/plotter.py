@@ -53,7 +53,8 @@ bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, d
 # Plotting
 # - - - - - - - - - - - -
 x_points = np.arange(0, horizon + 1, plot_step)
-y_points = np.zeros_like(x_points)
+y_points = np.zeros_like(x_points)	# To hold the mean y-value
+y_points_std_dev = np.zeros_like(x_points)	# To hold the standard deviation of y-value
 
 # Retrieve the metric to be plotted
 my_metric = args.metric
@@ -69,15 +70,33 @@ else:
 
 # Plot the chosen data
 plt.figure(figsize=(10, 10))
+plot_handles = []	# List to store line object for the legend
+
 for index, label in enumerate(selected_algos):
 	algo_data = bandit_data[bandit_data["algo"] == label]
 	for i in range(len(y_points)):
-		y_points[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].mean()
-	plt.plot(x_points, y_points, color=COLORS[index], linewidth=3)
+		try:
+			y_points[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].mean()
+			y_points_std_dev[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].std()
+		except ValueError:
+			print("Error: Likely data for some algorithm selected in --algos is missing. Exiting...")
+			exit(-1)
+
+	# Plot the mean line
+	line, = plt.plot(x_points, y_points, color=COLORS[index], linewidth=3, label=label)
+	plot_handles.append(line)
+
+	# Calculate the lower and upper bounds for the 2\sigma interval
+	lower_bound = y_points - 2 * y_points_std_dev
+	upper_bound = y_points + 2 * y_points_std_dev
+
+	# Fill the 2\sigma interval
+	plt.fill_between(x_points, lower_bound, upper_bound, color=COLORS[index], alpha=0.2)
+
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir
 
-plt.legend(selected_algos, fontsize='large')  # Increase font size for legend
+plt.legend(handles=plot_handles, fontsize='large')  # Increase font size for legend
 plt.xlabel("Steps $t$", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
 plt.ylabel(y_label, fontweight="bold", fontsize=14)  # Increase font size for y-axis label
 # Set font size of ticks

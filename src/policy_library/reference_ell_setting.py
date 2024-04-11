@@ -178,10 +178,10 @@ def pairwise_elimination_for_cs_pe(ref_ell_idx: int, mu_hat: np.array, nsamps: n
         elif (nsamps[episode_num] == n_m) and (mu_hat[episode_num] + buffer < ref_rew_multiplier * mu_hat[ref_ell_idx] - buffer):
             # Go to next episode
             k = episode_num + 1
-            # Reset delta_tilde for the next episode
-            delta_tilde = omega
             # Increment episode number
             episode_num += 1
+            # Reset delta_tilde for the next episode
+            delta_tilde = omega[episode_num]
             return k, delta_tilde, episode_num
         # Check the number of times the episode_num indexed candidate arm has been sampled
         elif nsamps[episode_num] < n_m:
