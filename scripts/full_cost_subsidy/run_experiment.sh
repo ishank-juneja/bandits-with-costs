@@ -13,7 +13,7 @@ FILES=(
 # Default parameters for the Python script
 STEP=1000
 HORIZON=500000
-NRUNS=50
+NRUNS=5
 
 # Loop through each file in the hardcoded list
 for file in "${FILES[@]}"; do

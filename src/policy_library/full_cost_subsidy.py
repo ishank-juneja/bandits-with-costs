@@ -69,7 +69,7 @@ def cs_ucb(mu_hat, costs, t, nsamps, horizon, alpha=0.0):
         k = t - 1
     else:
         # Compute the UCB index associated with every single arm
-        I_ucb_raw = mu_hat + np.sqrt(2 * log(t) / nsamps)
+        I_ucb_raw = mu_hat + np.sqrt(2 * log(horizon) / nsamps)
         I_ucb = np.minimum(I_ucb_raw, 1.0)
         # Identify the arm with the highest index and treat it as the proxy for the
         #  best arm
