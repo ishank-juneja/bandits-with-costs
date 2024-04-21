@@ -7,10 +7,14 @@ RESULTS_PATH="results/plots/full_cost_subsidy"
 #ALGOS="ucb improved-ucb pairwise-elimination"
 #ALGOS="ucb pairwise-elimination asymmetric-pe ref-arm-ell-UCB"
 #ALGOS="cs-ts"
-ALGOS="cs-ts cs-etc cs-ucb cs-pe"
+ALGOS="cs-ts cs-etc cs-ucb"
 
 # Hardcoded list of files using the common path variable
 FILES=(
+    "${COMMON_PATH}/I1_log.csv"
+    "${COMMON_PATH}/I2_log.csv"
+    "${COMMON_PATH}/I3_log.csv"
+    "${COMMON_PATH}/I4_log.csv"
     "${COMMON_PATH}/I5_log.csv"
 )
 

@@ -17,7 +17,7 @@ args = parser.parse_args()
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+algos = ['cs-etc', 'cs-ucb', 'cs-ts']
 # algos = ['cs-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
@@ -79,14 +79,10 @@ if __name__ == '__main__':
                 # Array to hold how many times a certain arm is sampled
                 nsamps = np.zeros(n_arms, dtype=np.int32)
                 # Compute the value of tau based on the horizon and number of arms
-                tau = 2 * int(np.ceil((horizon / n_arms) ** (2 / 3)))
-                # Initialize last_sampled with index 0 arm
-                last_sampled = 0
+                tau = 5 * int(np.ceil((horizon / n_arms) ** (2 / 3)))
                 for t in range(1, horizon + 1):
                     # Get arm to be sampled per the ETC-CS policy
-                    k = cs_etc(mu_hat, t, arm_cost_array, nsamps, horizon, last_sampled, tau, alpha=subsidy_factor)
-                    # Update last_sampled
-                    last_sampled = k
+                    k = cs_etc(mu_hat, t, arm_cost_array, nsamps, horizon, tau, alpha=subsidy_factor)
                     # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
                     nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,
                                                                                      k=k, t=t, nsamps=nsamps,
