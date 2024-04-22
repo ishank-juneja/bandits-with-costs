@@ -1,20 +1,127 @@
 from math import log
 import numpy as np
 from numpy.random import beta
-from src.policy_library.no_cost_subsidy import improved_ucb
-from src.policy_library.reference_ell_setting import pairwise_elimination_for_cs_pe
 from src.policy_library.utils import *
-from typing import Union, Callable
+from typing import Union
 
 
-# Set a more apt name for the improved_ucb function in the cs-pe context
-bai = improved_ucb
-asym_pe = Callable[[np.array, int, np.array, int, np.array, Union[int, None], float], Tuple[int, np.array, Union[int, None]]]
-sym_pe = Callable[[np.array, int, np.array, int, np.array, Union[int, None], float], Tuple[int, np.array, Union[int, None]]]
+def bai(mu_hat: np.array, horizon: int, omega: np.array, B: list):
+    """
+    The bai algorithm based on improved UCB. Called only until > 1 arms in B
+    :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
+    :param horizon: Known horizon budget as input
+    :param omega: Array (int) to hold the terminal round numbers omega
+    :param B: Set of active arms
+    :return: Updated terminal round numbers omega, updated active arm set B
+    """
+    # Infer value of delta_tilde
+    delta_tilde = pow(2.0, -np.max(omega))
+    # Compute the value of tau (called n_m in the improved UCB paper)
+    tau = int(np.ceil(2 * np.log(horizon * delta_tilde**2) / delta_tilde**2))
+    # Compute the logarithmic buffer term
+    beta_buffer = np.sqrt(np.log(horizon * delta_tilde**2) / (2 * tau))
+    # Compute the UCB values for all arms
+    ucb_values = mu_hat + beta_buffer
+    # Compute the LCB values for all arms
+    lcb_values = mu_hat - beta_buffer
+    # Determine the highest LCB value in the set of active arms
+    lcb_max = np.max(lcb_values[B])
+    # Determine the updated set of active arms
+    B_plus = [idx for idx in B if ucb_values[idx] > lcb_max]
+    # Update the terminal round numbers for the arms in the updated active set
+    omega_plus = np.copy(omega)
+    omega_plus[B_plus] = omega[B_plus] + 1
+    return omega_plus, B_plus
 
 
-def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, omega: np.array, B: list,
-          ep: Union[int, None], alpha: float=0.0, mode: str="asym"):
+def sym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np.array, ep: Union[int, None],
+           alpha: float):
+    """
+    :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
+    :param ell: Reference arm ell against which cheaper candidate arms are compared
+    :param nsamps: Array (int) to hold the number of times each arm has been sampled
+    :param horizon: Known horizon budget as input
+    :param omega: Array (int) to hold the terminal round numbers omega
+    :param ep: Counter for the episode that is currently active
+    :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
+    :return: Arm k to be sampled, updated terminal round numbers omega, updated episode number ep
+    """
+    # Get the gap delta_tilde as the gap associated with the current episode number
+    delta_tilde = pow(2.0, -omega[ep])
+    # Get the value of tau (n_m in the improved UCB paper)
+    tau = int(np.ceil(2 * np.log(horizon * delta_tilde**2) / delta_tilde**2))
+    for idx in [ep, ell]:
+        if nsamps[idx] < tau:
+            k = idx
+            return k, omega, ep # Terminal round number and episode numbers remain unchanged
+    # Compute the logarithmic buffer term
+    beta_buffer = np.sqrt(np.log(horizon * delta_tilde**2) / (2 * tau))
+    # Pre-compute the cost subsidy pre-multiplier
+    alpha_prime = 1 - alpha
+    # Check if `ell` should be eliminated in favor of arm `ep`
+    if alpha_prime * mu_hat[ell] + beta_buffer < mu_hat[ep] - beta_buffer:
+        k = ep
+        ep_plus = None
+        return k, omega, ep_plus
+    # Else check if arm `ep` should be eliminated in favor of arm `ell`
+    elif mu_hat[ep] + beta_buffer < alpha_prime * mu_hat[ell] - beta_buffer:
+        k = ep + 1
+        ep_plus = ep + 1
+        return k, omega, ep_plus
+    else:
+        k = ep
+        ep_plus = ep
+        omega_plus = np.copy(omega)
+        omega_plus[ep] = omega[ep] + 1
+        omega_plus[ell] = max(omega[ell], omega_plus[ep])
+        return k, omega_plus, ep_plus
+
+
+def asym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np.array, ep: Union[int, None],
+            alpha: float):
+    """
+    :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
+    :param ell: Reference arm ell against which cheaper candidate arms are compared
+    :param nsamps: Array (int) to hold the number of times each arm has been sampled
+    :param horizon: Known horizon budget as input
+    :param omega: Array (int) to hold the terminal round numbers omega
+    :param ep: Counter for the episode that is currently active
+    :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
+    :return:
+    """
+    # Init a two entry dict to hold the beta_buffer for both arms
+    beta_buffer = {}
+    # Get the gap delta_tilde as the gap associated with the current episode number
+    for idx in [ep, ell]:
+        delta_tilde_idx = pow(2.0, -omega[idx])
+        tau_idx = int(np.ceil(2 * np.log(horizon * delta_tilde_idx**2) / delta_tilde_idx**2))
+        if nsamps[idx] < tau_idx:
+            k = idx
+            return k, omega, ep
+        # Compute the logarithmic buffer term
+        beta_buffer[idx] = np.sqrt(np.log(horizon * delta_tilde_idx**2) / (2 * tau_idx))
+    alpha_prime = 1 - alpha
+    # Check if `ell` should be eliminated in favor of arm `ep`
+    if alpha_prime * mu_hat[ell] + beta_buffer[ell] < mu_hat[ep] - beta_buffer[ep]:
+        k = ep
+        ep_plus = None
+        return k, omega, ep_plus
+    # Else check if arm `ep` should be eliminated in favor of arm `ell`
+    elif mu_hat[ep] + beta_buffer[ep] < alpha_prime * mu_hat[ell] - beta_buffer[ell]:
+        k = ep + 1
+        ep_plus = ep + 1
+        return k, omega, ep_plus
+    else:
+        k = ep
+        ep_plus = ep
+        omega_plus = np.copy(omega)
+        omega_plus[ep] = omega[ep] + 1
+        omega_plus[ell] = max(omega[ell], omega_plus[ep])
+        return k, omega_plus, ep_plus
+
+
+def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: Union[int, None], omega: np.array,
+          B: list, ep: Union[int, None], alpha: float=0.0, mode: str="asym"):
     """
     Our two phase algorithm to compare against the CS-ETC algorithm
     After the first phase is done, the calling loop for this function resets the parameters
@@ -23,8 +130,7 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, o
     :param nsamps: Array (int) to hold the number of times each arm has been sampled
     :param horizon: Known horizon budget as input
     :param last_sampled: Array index of the arm that was sampled last
-    :param omega: Array (float) to hold the iterative gap value at which every arm is eliminated in phase 1
-     used to find where to pick back up from in phase 2
+    :param omega: Array (int) to hold the terminal round numbers omega
     :param B: List of active arms
     :param ep: Counter for the episode number being performed in phase 2
     :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
@@ -36,21 +142,20 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, o
     ell = B[0]  # ell is only used when there is only a single active arm left
     # Check if arms are yet to be eliminated
     if len(B) > 1:
-        delta_tilde = pow(2, -np.max(omega))
+        delta_tilde = pow(2.0, -np.max(omega))
         tau = int(np.ceil(2 * np.log(horizon * delta_tilde**2) / delta_tilde**2))
-        rnd_done = True
         for idx in B:
             if nsamps[idx] < tau:
                 k = idx
-                rnd_done = False
-                break
-        if rnd_done:
-            omega_plus, B_plus = bai(mu_hat, horizon, omega, B)
-            if len(B_plus) == 1:
-                return None # Dud iteration, rerun
-            else:
-                k = B_plus[0]
-            return k, omega_plus, B_plus, ep
+                return k, omega, B, ep
+        omega_plus, B_plus = bai(mu_hat, horizon, omega, B)
+        if len(B_plus) == 1:
+            # No arm to be sampled, so k is set to None
+            k = None
+            omega_plus = omega  # Go back to old omega
+        else:
+            k = B_plus[0]
+        return k, omega_plus, B_plus, ep
     elif ep not in [None, ell]:
         if mode == "asym":
             k, omega_plus, ep_plus = asym_pe(mu_hat, ell, nsamps, horizon, omega, ep, alpha)
@@ -60,7 +165,7 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, o
             raise ValueError("Invalid mode specified")
     else:
         k = last_sampled
-    return k, omega, B, ep
+    return k, omega_plus, B, ep
 
 
 def cs_ucb(mu_hat: np.array, costs: np.array, t: int, nsamps, horizon: int, alpha: float=0.0):

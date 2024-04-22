@@ -15,7 +15,7 @@ FILES=(
 )
 
 # Default parameters for the Python script
-STEP=1000
+STEP=500
 HORIZON=500000
 NRUNS=50
 
