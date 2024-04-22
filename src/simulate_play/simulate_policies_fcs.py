@@ -3,7 +3,7 @@ from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
 from src.instance_handling.get_instance import read_instance_from_file
-from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
+from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe, cs_pe_old
 
 
 # Command line inputs
@@ -18,7 +18,7 @@ in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
 # algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
-algos = ['cs-etc', 'cs-pe']
+algos = ['cs-pe', 'cs-pe-old']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -86,11 +86,13 @@ if __name__ == '__main__':
                 active_list = list(range(n_arms))
                 # Episode number for the pairwise elimination algorithm
                 episode = 0
-                for t in range(1, horizon + 1):
+                # Initialize t = 1
+                t = 1
+                while t < horizon + 1:
                     # Get arm to be sampled per the PE-CS policy
                     k, omega_plus, active_list_plus, episode_plus = cs_pe(mu_hat, nsamps, horizon, last_sampled, omega,
                                                                           active_list, episode, alpha=subsidy_factor,
-                                                                          mode='sym')
+                                                                          mode='asym')
                     omega = omega_plus
                     active_list = active_list_plus
                     episode = episode_plus
@@ -107,7 +109,7 @@ if __name__ == '__main__':
                                                                                      mu_calib=mu_calib,
                                                                                      arm_cost_array=arm_cost_array,
                                                                                      c_calib=c_calib)
-
+                    t += 1
             elif al == 'cs-etc':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
@@ -162,6 +164,54 @@ if __name__ == '__main__':
                                                                                      mu_hat, qual_reg, cost_reg, al, rs,
                                                                                      arm_reward_array, mu_calib,
                                                                                      arm_cost_array, c_calib)
+            elif al == 'cs-pe-old':
+                # Array to hold empirical estimates of each arms reward expectation
+                mu_hat = np.zeros(n_arms)
+                # Array to hold how many times a certain arm is sampled
+                nsamps = np.zeros(n_arms, dtype=np.int32)
+                # Array to hold the final/terminal delta_tilde value for each arm in the bai phase
+                # We use final delta_tilde values instead of the final round number (one-to-one map)
+                omega = np.zeros(n_arms, dtype=np.float32)
+                # Create and initialize variables to track delta_tilde, and B_0
+                delta_tilde = 1.0  # For both imp UCB and PE
+                # Create a list out of the indices of all the arms
+                # We always ensure that any updated B remains sorted
+                B = list(range(n_arms))  # For imp UCB
+                # Variable to hold the arm in B_m that was most recently sampled
+                #  since the way the improved-ucb and pe algorithms work, we need to keep sampling the same arm
+                #  until we have sampled it n_m times
+                last_sampled = 0  # For both imp UCB and PE
+                episode = -1  # For PE, initially when in phase 1, episode is meaningless
+                # Begin policy loop
+                for t in range(1, horizon + 1):
+                    # Get arm and mutable parameters per the PE-CS policy
+                    k, delta_tilde_next, B_next, episode_next = cs_pe_old(mu_hat, nsamps, horizon, last_sampled,
+                                                                          delta_tilde, B, episode, alpha=subsidy_factor,
+                                                                          omega=omega)
+                    # If B reduces to 1 arm, then phase 1 is complete
+                    # Perform all the one-time reset actions
+                    if len(B_next) == 1 and len(B) > 1:
+                        # Manually override the next variables in case the transition from phase 1 to phase 2
+                        #  has been reached
+                        delta_tilde_next = 1.0
+                        episode_next = 0
+                        reference_arm = B_next[0]  # The only arm left in B_new
+                        last_sampled = 0
+                    # Update existing variables to the returned variables before book-keeping
+                    delta_tilde = delta_tilde_next
+                    episode = episode_next
+                    B = B_next
+                    last_sampled = k
+                    # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
+                    nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,
+                                                                                     k=k, t=t, nsamps=nsamps,
+                                                                                     mu_hat=mu_hat, qual_reg=qual_reg,
+                                                                                     cost_reg=cost_reg, al=al,
+                                                                                     rs=rs,
+                                                                                     arm_reward_array=arm_reward_array,
+                                                                                     mu_calib=mu_calib,
+                                                                                     arm_cost_array=arm_cost_array,
+                                                                                     c_calib=c_calib)
 
             else:
                 print("Invalid algorithm {0} selected_algos, ignored".format(al))

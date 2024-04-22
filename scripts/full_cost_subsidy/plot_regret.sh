@@ -7,7 +7,7 @@ RESULTS_PATH="results/plots/full_cost_subsidy"
 #ALGOS="ucb improved-ucb pairwise-elimination"
 #ALGOS="ucb pairwise-elimination asymmetric-pe ref-arm-ell-UCB"
 #ALGOS="cs-ts"
-ALGOS="cs-ts cs-etc cs-ucb"
+ALGOS="cs-pe-old cs-pe"
 
 # Hardcoded list of files using the common path variable
 FILES=(

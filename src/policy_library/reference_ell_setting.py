@@ -170,12 +170,12 @@ def pairwise_elimination_for_cs_pe(ref_ell_idx: int, mu_hat: np.array, nsamps: n
         #  equal to n_m, then it means that no further samples are needed before the next
         #  elimination check and round number increment
         # Check if arm ell should be eliminated in favor of arm j and the episodes concluded
-        if (nsamps[episode_num] == n_m) and (ref_rew_multiplier * mu_hat[ref_ell_idx] + buffer < mu_hat[episode_num] - buffer):
+        if (nsamps[episode_num] == n_m) and (nsamps[ref_ell_idx] == n_m) and (ref_rew_multiplier * mu_hat[ref_ell_idx] + buffer < mu_hat[episode_num] - buffer):
             # Set episode to -1 and return arm j for sampling
             k = episode_num
             episode_num = -1
             return k, delta_tilde, episode_num
-        elif (nsamps[episode_num] == n_m) and (mu_hat[episode_num] + buffer < ref_rew_multiplier * mu_hat[ref_ell_idx] - buffer):
+        elif (nsamps[episode_num] == n_m) and (nsamps[ref_ell_idx] == n_m) and (mu_hat[episode_num] + buffer < ref_rew_multiplier * mu_hat[ref_ell_idx] - buffer):
             # Go to next episode
             k = episode_num + 1
             # Increment episode number
