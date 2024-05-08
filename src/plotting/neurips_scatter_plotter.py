@@ -12,22 +12,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--log-file-folder", action="store", dest="folder")
 parser.add_argument('--algos', type=str, nargs='+',
                     help='Algorithms for regret to be plotted')
-parser.add_argument('--metric', type=str, choices=['reg', 'qual_reg', 'cost_reg'],
-					help='Metric to be plotted rn.')
 parser.add_argument('--save-dir', type=str, help='The directory to save the plots in.')
 args = parser.parse_args()
-
-# Retrieve the metric to be plotted
-my_metric = args.metric
-# Retrieve y-label based on metric name
-if my_metric == "reg":
-	y_label = "Regret"
-elif my_metric == "qual_reg":
-	y_label = "Quality Regret"
-elif my_metric == "cost_reg":
-	y_label = "Cost Regret"
-else:
-	raise ValueError("Invalid metric name")
 
 log_folder = args.folder
 # Get list of the algorithms for which metrics to be plotted
@@ -48,12 +34,35 @@ else:
 
 # Initialize horizon with -1
 horizon = -1
+nseeds = -1
 
 # Retrieve the number of files to be processed
 sorted_files = sorted(pathlib.Path(log_folder).iterdir(), key=lambda x: x.name)
 num_files = len(sorted_files)
-# Init a numpy array to hold all the data
-y_points = np.zeros((nalgos, num_files))
+
+# Infer the random seed and horizon and ensure their consistency across all the log files
+for file_idx, in_file in enumerate(sorted_files):
+	# Read in the log file as a pandas dataframe
+	bandit_data = pd.read_csv(in_file, sep=",")
+	# Infer the horizon as the largest entry in the 'horizon' column
+	horizon_new = bandit_data["time-step"].max()
+	# Infer the number of distinct random seeds
+	# - - - - - - - - - - - -
+	nseeds_new = bandit_data["rs"].max() + 1
+	# If horizon being set for the first time, set it directly, else check if it is the same as the previous horizon
+	if horizon == -1:
+		horizon = horizon_new
+	elif horizon != horizon_new:
+		raise ValueError("Horizon mismatch in log files")
+
+	if nseeds == -1:
+		nseeds = nseeds_new
+	elif nseeds != nseeds_new:
+		raise ValueError("Number of seeds mismatch in log files")
+
+# Init numpy arrays to hold the scatter plot data
+x_points = np.zeros((nalgos, num_files, nseeds))
+y_points = np.zeros((nalgos, num_files, nseeds))
 
 # Iterate over all the .csv files present in this folder
 for file_idx, in_file in enumerate(sorted_files):
@@ -61,22 +70,20 @@ for file_idx, in_file in enumerate(sorted_files):
 	# - - - - - - - - - - - -
 	# Read in the log file as a pandas dataframe
 	bandit_data = pd.read_csv(in_file, sep=",")
-	# Infer the horizon as the largest entry in the 'horizon' column
-	horizon_new = bandit_data["time-step"].max()
-	# - - - - - - - - - - - -
 
 	# Plotting
 	# - - - - - - - - - - - -
-	# If horizon being set for the first time, set it directly, else check if it is the same as the previous horizon
-	if horizon == -1:
-		horizon = horizon_new
-	elif horizon != horizon_new:
-		raise ValueError("Horizon mismatch in log files")
-
+	
 	for index, label in enumerate(selected_algos):
 		algo_data = bandit_data[bandit_data["algo"] == label]
-		y_point = algo_data.loc[algo_data["time-step"] == horizon][my_metric].mean()
-		y_points[index, file_idx] = y_point
+		x_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['qual_reg']
+		y_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['cost_reg']
+		x_points[index, file_idx, :] = x_points_all_runs
+		y_points[index, file_idx, :] = y_points_all_runs
+
+# Flatten the x_points and y_points arrays along the last 2 dimensions
+x_points = x_points.reshape((nalgos, num_files * nseeds))
+y_points = y_points.reshape((nalgos, num_files * nseeds))
 
 # Plot once all the data has been collected together by iterating over all the .csv files
 plt.figure(figsize=(10, 10))
@@ -84,22 +91,22 @@ plt.figure(figsize=(10, 10))
 
 # Hard code set the x-ticks (These xticks are based on the line that equally spaces a reward in the instance
 # generation bash script)
-xticks = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+# xticks = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 
 for index in range(nalgos):
-	plt.plot(xticks, y_points[index, :], linewidth=3, marker='o', markersize=20, linestyle='-', color=COLORS[index])
+	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index])
 
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir
 
 plt.legend(selected_algos, fontsize='large')  # Increase font size for legend
-plt.xlabel("Quality of Cheaper Arm", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
-plt.ylabel(y_label, fontweight="bold", fontsize=14)  # Increase font size for y-axis label
+plt.xlabel("Quality Regret", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
+plt.ylabel("Cost Regret", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
 # Set font size of ticks
 plt.tick_params(axis='both', which='major', labelsize=14)
 plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
 # - - - - - - - - - - - -
 
 # Save figure
-plt.savefig(save_dir + "/{0}_{1}".format("mab_cs_paper_experiment", my_metric) + ".png", bbox_inches="tight")
+plt.savefig(save_dir + "/neurips_experiment.png", bbox_inches="tight")
 plt.close()

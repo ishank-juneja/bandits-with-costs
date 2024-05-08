@@ -2,47 +2,7 @@ from math import log
 import numpy as np
 from numpy.random import beta
 from src.policy_library.utils import *
-from src.policy_library.no_cost_subsidy import improved_ucb
-from src.policy_library.reference_ell_setting import pairwise_elimination_for_cs_pe
 from typing import Union
-
-
-def cs_pe_old(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: int, delta_tilde: float, B: list,
-              episode: int, omega: np.array, alpha: float=0.0):
-    """
-    Our two phase algorithm to compare against the CS-ETC algorithm
-    After the first phase is done, the calling loop for this function resets the parameters
-    so that they are ready for the next phase
-    :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
-    :param nsamps: Array (int) to hold the number of times each arm has been sampled
-    :param horizon: Known horizon budget as input
-    :param last_sampled: Index of the last arm sampled to check if already sampled sufficiently
-    :param delta_tilde: The iterative gap used by the algorithm
-    :param B: List of active arms
-    :param episode: Counter to track the phase of the PE algorithm
-    :param omega: Array (float) to hold the iterative gap value at which every arm is eliminated in phase 1
-        used to find where to pick back up from in phase 2
-    :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
-    :return:
-    """
-    # Check if there are still more than 1 arms left, if so, run phase 1 again
-    if len(B) > 1:
-        # Run phase 1 Improved-UCB elimination phase code
-        k, delta_tilde_new, B_new, omega = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled, omega)
-    else:
-        # There is no change to the set of active arms (in fact we are in phase 2, and notion of active arms is gone)
-        B_new = B
-    # Actually sample the prescription made by phase 1, only if there remain to be more than 1 arms in B_new
-    if len(B_new) > 1:
-        return k, delta_tilde_new, B_new, episode # Only entered when k has been set by the return value of bai
-    # Else pick the best arm declared by imp UCB as reference and move onto phase 2
-    else:
-        # Infer the reference arm as the only arm in B_new
-        ref_arm = B_new[0]
-        # Run phase 2 PE code
-        k, delta_tilde_new, episode_new = pairwise_elimination_for_cs_pe(ref_arm, mu_hat, nsamps, horizon, delta_tilde,
-                                                                         episode, last_sampled, omega, alpha)
-        return k, delta_tilde_new, B_new, episode_new
 
 
 def bai(mu_hat: np.array, horizon: int, omega: np.array, B: list):
@@ -99,12 +59,12 @@ def sym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np
     # Pre-compute the cost subsidy pre-multiplier
     alpha_prime = 1 - alpha
     # Check if `ell` should be eliminated in favor of arm `ep`
-    if alpha_prime * mu_hat[ell] + beta_buffer < mu_hat[ep] - beta_buffer:
+    if alpha_prime * (mu_hat[ell] + beta_buffer) < mu_hat[ep] - beta_buffer:
         k = ep
         ep_plus = None
         return k, omega, ep_plus
     # Else check if arm `ep` should be eliminated in favor of arm `ell`
-    elif mu_hat[ep] + beta_buffer < alpha_prime * mu_hat[ell] - beta_buffer:
+    elif mu_hat[ep] + beta_buffer < alpha_prime * (mu_hat[ell] - beta_buffer):
         k = ep + 1
         ep_plus = ep + 1
         return k, omega, ep_plus
@@ -142,12 +102,12 @@ def asym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: n
         beta_buffer[idx] = np.sqrt(np.log(horizon * delta_tilde_idx**2) / (2 * tau_idx))
     alpha_prime = 1 - alpha
     # Check if `ell` should be eliminated in favor of arm `ep`
-    if alpha_prime * mu_hat[ell] + beta_buffer[ell] < mu_hat[ep] - beta_buffer[ep]:
+    if alpha_prime * (mu_hat[ell] + beta_buffer[ep]) < mu_hat[ep] - beta_buffer[ep]:
         k = ep
         ep_plus = None
         return k, omega, ep_plus
     # Else check if arm `ep` should be eliminated in favor of arm `ell`
-    elif mu_hat[ep] + beta_buffer[ep] < alpha_prime * mu_hat[ell] - beta_buffer[ell]:
+    elif mu_hat[ep] + beta_buffer[ep] < alpha_prime * (mu_hat[ell] - beta_buffer[ell]):
         k = ep + 1
         ep_plus = ep + 1
         return k, omega, ep_plus

@@ -6,9 +6,9 @@ COMMON_PATH="data/bandit_instances/full_cost_subsidy/computer_generated/"
 OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/computer_generated/"
 
 # Default parameters for the Python script
-STEP=100
-HORIZON=10000
-NRUNS=5
+STEP=500
+HORIZON=500000
+NRUNS=50
 
 # Use find with a while read loop to process each file
 find "${COMMON_PATH}" -name "*.txt" | while read file; do
