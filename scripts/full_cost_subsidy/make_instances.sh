@@ -11,13 +11,13 @@ mkdir -p "$output_dir"
 file_idx=1
 
 # Generate 11 linearly spaced values between 0.3 and 0.6.
-for x in $(seq 0.3 0.03 0.6); do
+for x in $(seq 0.3 0.05 0.7); do
     # Format the file name.
     file_name=$(printf "I%03d.txt" "$file_idx")
     full_path="$output_dir/$file_name"
 
     # Prepare the content with the current value of x.
-    content="instance_id: FCS%03d\narm_reward_array: 0.5, $x\nsubsidy_factor: 0.1\narm_cost_array: 1.0, 0.0"
+    content="instance_id: FCS%03d\narm_reward_array: $x, 0.75, 0.9\nsubsidy_factor: 0.25\narm_cost_array: 0.0, 0.5, 1.0"
     content=$(printf "$content" "$file_idx")
 
     # Write the content to the file.

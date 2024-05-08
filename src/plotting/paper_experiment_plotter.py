@@ -84,7 +84,7 @@ plt.figure(figsize=(10, 10))
 
 # Hard code set the x-ticks (These xticks are based on the line that equally spaces a reward in the instance
 # generation bash script)
-xticks = np.linspace(0.3, 0.6, 11)
+xticks = np.linspace(0.3, 0.7, 9)
 
 for index in range(nalgos):
 	plt.plot(xticks, y_points[index, :], linewidth=3, marker='o', markersize=20, linestyle='-', color=COLORS[index])

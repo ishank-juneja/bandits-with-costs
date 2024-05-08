@@ -44,15 +44,18 @@ if __name__ == '__main__':
 
     # Adjusting the text label position slightly above the marker for better visibility
     plt.figure(figsize=(8, 6))
-    for i in arm_indices:
-        plt.plot([i, i], [0, arm_reward_array[i]], 'k-', lw=1)  # Vertical line
+    for idx in arm_indices:
+        plt.plot([idx, idx], [0, arm_reward_array[idx] / 2], 'k-', lw=1)  # Vertical line seg 1
+        plt.plot([idx, idx], [arm_reward_array[idx] / 2 + 0.05, arm_reward_array[idx]], 'k-', lw=1)  # Vertical line seg 2
         # Horizontal bar marker
-        start_x = i - 0.2
-        end_x = i + 0.2
-        y_value = arm_reward_array[i]
+        start_x = idx - 0.2
+        end_x = idx + 0.2
+        y_value = arm_reward_array[idx]
         plt.plot([start_x, end_x], [y_value, y_value], 'b-', lw=1)
-        plt.text(i, arm_reward_array[i] + 0.01, f"{arm_cost_array[i]:.2f}", ha='center', va='bottom',
-                 color='black', fontweight='bold', fontsize=12)  # Adjusted Cost label
+        plt.text(idx, arm_reward_array[idx] + 0.01, r"$c_{0}={1:.2f}$".format(idx + 1, arm_cost_array[idx]),
+                 ha='center', va='bottom', color='black', fontweight='bold', fontsize=12)  # Adjusted Cost label
+        plt.text(idx, (arm_reward_array[idx]) / 2, r"$\mu_{0}={1:.2f}$".format(idx + 1, arm_reward_array[idx]),
+                 ha='center', va='bottom', color='black', fontweight='bold', fontsize=12)  # Adjusted Cost label
 
     plt.axhline(y=horizontal_line_value, color='red', linestyle='--')  # Horizontal red line
 
@@ -66,7 +69,7 @@ if __name__ == '__main__':
     x_min, x_max = plt.xlim()
     extreme_right_x = x_max * 1.01
     # Add the text label for the horizontal line
-    plt.text(extreme_right_x, horizontal_line_value, f"{horizontal_line_value:.2f}",
+    plt.text(extreme_right_x, horizontal_line_value, r"$\mu_{{\text{{CS}}}} = {0:.2f}$".format(horizontal_line_value),
              ha='left', va='center', color='red', fontweight='bold', fontsize=12)
 
     # Retrieve tha path for the directory to save the plots in
