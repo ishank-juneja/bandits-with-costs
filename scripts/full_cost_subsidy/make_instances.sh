@@ -17,7 +17,7 @@ for x in $(seq 0.4 0.05 0.9); do
     full_path="$output_dir/$file_name"
 
     # Prepare the content with the current value of x.
-    content="instance_id: FCS%03d\narm_reward_array: 0.65, $x, 0.83, 0.95\nsubsidy_factor: 0.2\narm_cost_array: 0.7, 0.8, 0.9, 1.0"
+    content="instance_id: FCS%03d\narm_reward_array: 0.65, $x, 0.83, 0.95\nsubsidy_factor: 0.2\narm_cost_array: 0.75, 0.8, 0.85, 0.9"
     content=$(printf "$content" "$file_idx")
 
     # Write the content to the file.
