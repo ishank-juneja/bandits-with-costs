@@ -77,8 +77,8 @@ def sym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np
         return k, omega_plus, ep_plus
 
 
-def asym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np.array, ep: Union[int, None],
-            alpha: float):
+def pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: np.array, ep: Union[int, None],
+       alpha: float, kappa: int):
     """
     :param mu_hat: Array (np.float) to hold the empirical return estimates mu_hat
     :param ell: Reference arm ell against which cheaper candidate arms are compared
@@ -87,13 +87,19 @@ def asym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: n
     :param omega: Array (int) to hold the terminal round numbers omega
     :param ep: Counter for the episode that is currently active
     :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
+    :param kappa: Kappa is the maximum deviation between the round number for reference arm ell (leading) with the
+    round number for the episode arm ep (trailing)
     :return:
     """
     # Init a two entry dict to hold the beta_buffer for both arms
     beta_buffer = {}
+    delta_tilde = {}
+    delta_tilde[ep] = pow(2.0, -omega[ep])
+    delta_tilde[ell] = pow(2.0, -min(omega[ell], omega[ep] + kappa))
     # Get the gap delta_tilde as the gap associated with the current episode number
     for idx in [ep, ell]:
-        delta_tilde_idx = pow(2.0, -omega[idx])
+        # Retrieve the appt value of delta_tilde
+        delta_tilde_idx = delta_tilde[idx]
         tau_idx = int(np.ceil(2 * np.log(horizon * delta_tilde_idx**2) / delta_tilde_idx**2))
         if nsamps[idx] < tau_idx:
             k = idx
@@ -121,7 +127,7 @@ def asym_pe(mu_hat: np.array, ell: int, nsamps: np.array, horizon: int, omega: n
 
 
 def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: Union[int, None], omega: np.array,
-          B: list, ep: Union[int, None], alpha: float=0.0, mode: str="asym"):
+          B: list, ep: Union[int, None], alpha: float=0.0, kappa: int=5):
     """
     Our two phase algorithm to compare against the CS-ETC algorithm
     After the first phase is done, the calling loop for this function resets the parameters
@@ -134,7 +140,8 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: Union[
     :param B: List of active arms
     :param ep: Counter for the episode number being performed in phase 2
     :param alpha: Subsidy factor to multiply the highest return by, lies in [0, 1]
-    :param mode: String to specify the mode of the algorithm, either "asym" or "sym"
+    :param kappa: Kappa is the maximum deviation between the round number for reference arm ell (leading) with the
+     round number for the episode arm ep (trailing)
     :return: Arm k to be sampled, updated terminal round numbers omega, updated active arm set B,
      updated episode number ep
     """
@@ -157,12 +164,7 @@ def cs_pe(mu_hat: np.array, nsamps: np.array, horizon: int, last_sampled: Union[
             k = B_plus[0]
         return k, omega_plus, B_plus, ep
     elif ep not in [None, ell]:
-        if mode == "asym":
-            k, omega_plus, ep_plus = asym_pe(mu_hat, ell, nsamps, horizon, omega, ep, alpha)
-        elif mode == "sym":
-            k, omega_plus, ep_plus = sym_pe(mu_hat, ell, nsamps, horizon, omega, ep, alpha)
-        else:
-            raise ValueError("Invalid mode specified")
+        k, omega_plus, ep_plus = pe(mu_hat, ell, nsamps, horizon, omega, ep, alpha, kappa)
         return k, omega_plus, B, ep_plus
     else:
         return last_sampled, omega, B, ep   # Have reached the end of search, just need to sample to exhaust budget

@@ -109,6 +109,44 @@ if __name__ == '__main__':
                                                                                      arm_cost_array=arm_cost_array,
                                                                                      c_calib=c_calib)
                     t += 1
+            # Ablation where the round number for arm ell is not allowed to exceed the round number for arm ep
+            elif al == 'cs-pe-symmetric':
+                # Array to hold empirical estimates of each arms reward expectation
+                mu_hat = np.zeros(n_arms, dtype=np.float64)
+                # Array to hold how many times a certain arm is sampled
+                nsamps = np.zeros(n_arms, dtype=np.int32)
+                # Array to hold the terminal round numbers achieved so far by each arm
+                omega = np.zeros(n_arms, dtype=np.int32)
+                # Variable to hold the index of the last sampled arm
+                last_sampled = None
+                # Initialize active list N to be a list with all entries 1 through n_arms
+                active_list = list(range(n_arms))
+                # Episode number for the pairwise elimination algorithm
+                episode = 0
+                # Initialize t = 1
+                t = 1
+                while t < horizon + 1:
+                    # Get arm to be sampled per the PE-CS policy
+                    k, omega_plus, active_list_plus, episode_plus = cs_pe(mu_hat, nsamps, horizon, last_sampled, omega,
+                                                                          active_list, episode, alpha=subsidy_factor,
+                                                                          kappa=0)
+                    omega = omega_plus
+                    active_list = active_list_plus
+                    episode = episode_plus
+                    if k is None:
+                        continue
+                    last_sampled = k
+                    # Update the books and receive updated loop/algo parameters in accordance with the sampling of arm k
+                    nsamps, mu_hat, qual_reg, cost_reg = do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples,
+                                                                                     k=k, t=t, nsamps=nsamps,
+                                                                                     mu_hat=mu_hat, qual_reg=qual_reg,
+                                                                                     cost_reg=cost_reg, al=al,
+                                                                                     rs=rs,
+                                                                                     arm_reward_array=arm_reward_array,
+                                                                                     mu_calib=mu_calib,
+                                                                                     arm_cost_array=arm_cost_array,
+                                                                                     c_calib=c_calib)
+                    t += 1
             elif al == 'cs-etc':
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms)
