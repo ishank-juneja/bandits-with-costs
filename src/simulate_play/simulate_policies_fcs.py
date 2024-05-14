@@ -17,7 +17,7 @@ args = parser.parse_args()
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe', 'cs-pe-symmetric']
 # algos = ['cs-ucb', 'cs-ts', 'cs-pe']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
