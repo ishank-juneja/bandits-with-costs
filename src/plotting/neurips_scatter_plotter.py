@@ -88,11 +88,6 @@ y_points = y_points.reshape((nalgos, num_files * nseeds))
 # Plot once all the data has been collected together by iterating over all the .csv files
 plt.figure(figsize=(10, 10))
 
-
-# Hard code set the x-ticks (These xticks are based on the line that equally spaces a reward in the instance
-# generation bash script)
-# xticks = [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
-
 for index in range(nalgos):
 	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index])
 
