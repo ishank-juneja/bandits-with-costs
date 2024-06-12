@@ -8,7 +8,7 @@ ALGOS="cs-ts cs-ucb cs-pe cs-etc"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/linear_cost_regret.csv"
+    "${COMMON_PATH}/linear_cost_regret_log.csv"
 )
 
 # Loop through each file in the hardcoded list
