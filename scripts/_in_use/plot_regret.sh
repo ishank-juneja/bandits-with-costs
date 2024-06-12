@@ -19,3 +19,5 @@ for file in "${FILES[@]}"; do
     # Plot cost regret
     python src/plotting/plotter.py --log-file "$file" --algos $ALGOS --metric cost_reg  --save-dir "$RESULTS_PATH"
 done
+
+echo "All plots complete"

@@ -12,8 +12,8 @@ FILES=(
 
 # Default parameters for the Python script
 STEP=500
-HORIZON=5000
-NRUNS=2
+HORIZON=500000
+NRUNS=50
 
 # Loop through each file in the hardcoded list
 for file in "${FILES[@]}"; do
@@ -25,3 +25,5 @@ for file in "${FILES[@]}"; do
 
     python src/simulate_play/simulate_policies_fcs.py -file "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS > "${OUT_FILE_PATH}${logname}"
 done
+
+echo "All simulations complete"
