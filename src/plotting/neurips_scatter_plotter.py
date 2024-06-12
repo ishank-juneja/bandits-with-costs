@@ -7,6 +7,7 @@ import argparse
 import pathlib
 
 
+
 # Command line input
 parser = argparse.ArgumentParser()
 parser.add_argument("--log-file-folder", action="store", dest="folder")
@@ -89,7 +90,7 @@ y_points = y_points.reshape((nalgos, num_files * nseeds))
 plt.figure(figsize=(10, 10))
 
 for index in range(nalgos):
-	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index])
+	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index], alpha=0.5)
 
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir

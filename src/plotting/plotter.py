@@ -91,7 +91,7 @@ for index, label in enumerate(selected_algos):
 	upper_bound = y_points + 2 * y_points_std_dev
 
 	# Fill the 2\sigma interval
-	plt.fill_between(x_points, lower_bound, upper_bound, color=COLORS[index], alpha=0.2)
+	# plt.fill_between(x_points, lower_bound, upper_bound, color=COLORS[index], alpha=0.2)
 
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir
