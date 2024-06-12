@@ -3,7 +3,7 @@
 # Common path variable
 COMMON_PATH="data/bandit_instances/full_cost_subsidy/_in_use"
 # Result path variable
-OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/_in_use"
+OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/_in_use/"
 
 # Hardcoded list of files using the common path variable
 FILES=(
