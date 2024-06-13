@@ -7,7 +7,7 @@ OUT_FILE_PATH="results/_run_logs/full_cost_subsidy/_in_use/"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/linear_cost_regret.txt"
+    "${COMMON_PATH}/linear_cost_regret_v2.txt"
 )
 
 # Default parameters for the Python script
