@@ -5,10 +5,11 @@ COMMON_PATH="results/_run_logs/full_cost_subsidy/_in_use"
 RESULTS_PATH="results/plots/full_cost_subsidy"
 
 ALGOS="cs-ts cs-ucb cs-pe cs-etc"
+#ALGOS="cs-ts cs-ucb"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/linear_cost_regret_v2_log.csv"
+    "${COMMON_PATH}/linear_qual_regret_log.csv"
 )
 
 # Loop through each file in the hardcoded list
