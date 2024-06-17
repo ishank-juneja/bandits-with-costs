@@ -105,7 +105,7 @@ for idx, t in enumerate(t_points):
 # - - - - - - - - - - - -
 # Create temporary directory for frames
 save_dir = args.save_dir
-tmp_frames_dir = os.path.join(save_dir, "computer_generated")
+tmp_frames_dir = os.path.join(save_dir, "tmp")
 pathlib.Path(tmp_frames_dir).mkdir(parents=True, exist_ok=True)
 
 # Find the maximum value across all data points for setting y-axis limits
