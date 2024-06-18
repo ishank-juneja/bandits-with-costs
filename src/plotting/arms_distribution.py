@@ -8,9 +8,6 @@ import argparse
 import pathlib
 
 
-
-
-
 # Command line input
 parser = argparse.ArgumentParser()
 parser.add_argument("--log-file", action="store", dest="file")
