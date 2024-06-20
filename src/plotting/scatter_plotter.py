@@ -31,8 +31,7 @@ else:
 	COLORS = COLORS[:nalgos]
 # - - - - - - - - - - - -
 
-# Initialize horizon with -1
-horizon = -1
+# Initialize nseeds with -1
 nseeds = -1
 
 # Retrieve the number of files to be processed
@@ -48,12 +47,7 @@ for file_idx, in_file in enumerate(sorted_files):
 	# Infer the number of distinct random seeds
 	# - - - - - - - - - - - -
 	nseeds_new = bandit_data["rs"].max() + 1
-	# If horizon being set for the first time, set it directly, else check if it is the same as the previous horizon
-	if horizon == -1:
-		horizon = horizon_new
-	elif horizon != horizon_new:
-		raise ValueError("Horizon mismatch in log files")
-
+	# Enforce the same number of seeds across all log files
 	if nseeds == -1:
 		nseeds = nseeds_new
 	elif nseeds != nseeds_new:
@@ -70,6 +64,8 @@ for file_idx, in_file in enumerate(sorted_files):
 	# Read in the log file as a pandas dataframe
 	bandit_data = pd.read_csv(in_file, sep=",")
 
+	# Identify the horizon for the current file
+	horizon = bandit_data["time-step"].max()
 	# Plotting
 	# - - - - - - - - - - - -
 	
@@ -88,7 +84,7 @@ y_points = y_points.reshape((nalgos, num_files * nseeds))
 plt.figure(figsize=(10, 10))
 
 for index in range(nalgos):
-	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index], alpha=0.5)
+	plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index], alpha=0.1)
 
 # Retrieve tha path for the directory to save the plots in
 save_dir = args.save_dir
