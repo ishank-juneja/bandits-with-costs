@@ -7,7 +7,6 @@ import argparse
 import pathlib
 
 
-
 # Command line input
 parser = argparse.ArgumentParser()
 parser.add_argument("--log-file-folder", action="store", dest="folder")
@@ -17,7 +16,6 @@ parser.add_argument('--save-dir', type=str, help='The directory to save the plot
 args = parser.parse_args()
 
 log_folder = args.folder
-# Get list of the algorithms for which metrics to be plotted
 selected_algos = args.algos
 # Number of distinct algorithms used
 nalgos = len(selected_algos)
@@ -103,6 +101,8 @@ plt.tick_params(axis='both', which='major', labelsize=14)
 plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
 # - - - - - - - - - - - -
 
-# Save figure
-plt.savefig(save_dir + "/neurips_experiment.png", bbox_inches="tight")
-plt.close()
+plt.show()
+
+# # Save figure
+# plt.savefig(save_dir + "/scatter.png", bbox_inches="tight")
+# plt.close()
