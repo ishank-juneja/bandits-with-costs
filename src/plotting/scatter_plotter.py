@@ -8,9 +8,8 @@ from matplotlib.lines import Line2D
 
 # Command line input
 parser = argparse.ArgumentParser()
-parser.add_argument("--log-file-folder", action="store", dest="folder")
-parser.add_argument('--algos', type=str, nargs='+',
-                    help='Algorithms for regret to be plotted')
+parser.add_argument("--folder", action="store", dest="folder")
+parser.add_argument('--algos', type=str, nargs='+', help='Algorithms for regret to be plotted')
 parser.add_argument('--save-dir', type=str, help='The directory to save the plots in.')
 args = parser.parse_args()
 
@@ -47,12 +46,10 @@ nseeds = -1
 sorted_files = sorted(pathlib.Path(log_folder).iterdir(), key=lambda x: x.name)
 num_files = len(sorted_files)
 
-# Infer the random seed and horizon and ensure their consistency across all the log files
+# Infer the random seed and ensure its consistency across all the log files
 for file_idx, in_file in enumerate(sorted_files):
     # Read in the log file as a pandas dataframe
     bandit_data = pd.read_csv(in_file, sep=",")
-    # Infer the horizon as the largest entry in the 'horizon' column
-    horizon_new = bandit_data["time-step"].max()
     # Infer the number of distinct random seeds
     # - - - - - - - - - - - -
     nseeds_new = bandit_data["rs"].max() + 1
@@ -82,8 +79,8 @@ for file_idx, in_file in enumerate(sorted_files):
         algo_data = bandit_data[bandit_data["algo"] == label]
         x_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['qual_reg']
         y_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['cost_reg']
-        x_points[index, file_idx, :] = x_points_all_runs
-        y_points[index, file_idx, :] = y_points_all_runs
+        x_points[index, file_idx, :] = x_points_all_runs / horizon * 10**5
+        y_points[index, file_idx, :] = y_points_all_runs / horizon * 10**5
 
 # Flatten the x_points and y_points arrays along the last 2 dimensions
 x_points = x_points.reshape((nalgos, num_files * nseeds))
@@ -106,8 +103,8 @@ save_dir = args.save_dir
 custom_labels = [custom_algo_names.get(algo, algo) for algo in selected_algos]
 
 plt.legend(legend_handles, custom_labels, fontsize='large')  # Increase font size for legend
-plt.xlabel("Quality Regret", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
-plt.ylabel("Cost Regret", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
+plt.xlabel("Quality Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
+plt.ylabel("Cost Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
 # Set font size of ticks
 plt.tick_params(axis='both', which='major', labelsize=14)
 plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
