@@ -53,7 +53,7 @@ genre_avg_rating = genre_avg_rating.sort_values('cost', ascending=True)
 # arm_cost_array: 0.15, 0.2, 0.25
 
 # Open a file to write the bandit instance
-with open('data/ml-25m/bandit_instance.txt', 'w') as f:
+with open('aaai_data/ml-25m/movie_lens_instance.txt', 'w') as f:
     f.write('instance_id: ML001\n')
     # Format rewardsand costs to 3 decimal places
     f.write('arm_reward_array: ' + ', '.join(genre_avg_rating['avg-rating'].apply(lambda x: f'{x:.3f}').values) + '\n')

@@ -90,7 +90,7 @@ y_points = y_points.reshape((nalgos, num_files * nseeds))
 plt.figure(figsize=(10, 10))
 
 for index in range(nalgos):
-    plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index], alpha=0.1)
+    plt.scatter(x_points[index, :], y_points[index, :], marker='o', s=100, color=COLORS[index], alpha=0.5)
 
 # Create proxy artists for legend
 legend_handles = [Line2D([0], [0], marker='o', color='w', markerfacecolor=COLORS[index], markersize=10, alpha=1.0) for

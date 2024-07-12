@@ -1,17 +1,18 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="data/ml-25m"
+COMMON_PATH="aaai_data/bandit_instances"
 # Result path variable
-OUT_FILE_PATH="results/_run_logs/ml/"
+OUT_FILE_PATH="aaai_results/_run_logs/ml/"
 
 # Hardcoded list of files using the common path variable
 FILES=(
-    "${COMMON_PATH}/bandit_instance.txt"
+    "${COMMON_PATH}/movie_lens_instance.txt"
 )
 
-# Default parameters for the Python script
-STEP=500
+# Default parameters for the Python scri
+# pt
+STEP=1000
 HORIZON=5000000
 NRUNS=100
 
