@@ -14,7 +14,7 @@ FILES=(
 # pt
 STEP=1000
 HORIZON=5000000
-NRUNS=100
+NRUNS=1000
 
 # Loop through each file in the hardcoded list
 for file in "${FILES[@]}"; do
@@ -22,9 +22,9 @@ for file in "${FILES[@]}"; do
 
     # Extract the basename of the file and append "_log"
     filename=$(basename -- "$file")
-    logname="${filename%.*}_log.csv"
+    logname="${filename%.*}_log_1000.csv"
 
-    python src/simulate_play/simulate_policies_fcs.py -file "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS > "${OUT_FILE_PATH}${logname}"
+    python3 src/simulate_play/simulate_policies_fcs.py -file "$file" -STEP $STEP -horizon $HORIZON -nruns $NRUNS > "${OUT_FILE_PATH}${logname}"
 done
 
 echo "All simulations complete"

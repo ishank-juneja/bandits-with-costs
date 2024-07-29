@@ -54,7 +54,7 @@ bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, d
 # - - - - - - - - - - - -
 x_points = np.arange(0, horizon + 1, plot_step)
 y_points = np.zeros_like(x_points)	# To hold the mean y-value
-y_points_std_dev = np.zeros_like(x_points)	# To hold the standard deviation of y-value
+y_points_max = np.zeros_like(x_points)	# To hold the standard deviation of y-value
 
 # Retrieve the metric to be plotted
 my_metric = args.metric
@@ -73,11 +73,24 @@ plt.figure(figsize=(10, 10))
 plot_handles = []	# List to store line object for the legend
 
 for index, label in enumerate(selected_algos):
+	# Extract out the data just for this algorithm out of the entire bandit_data
 	algo_data = bandit_data[bandit_data["algo"] == label]
+
+	# Identify the random seed that gave the maximum value of my_metric at the terminal time-step
+	# Collect the terminal algorithm data into a variable
+	terminal_data = algo_data[algo_data["time-step"] == horizon]
+
+	# Get the index of the maximum entry in the my_metric column
+	max_index = terminal_data[my_metric].idxmax()
+
+	# Retrieve the corresponding 'rs' value
+	max_seed = terminal_data.loc[max_index, 'rs']
+	# Get the data-points for the maximum seed
+	y_points_max = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))][my_metric].values
+	# Compute the average regret at every plot_step interval time-step in a loop
 	for i in range(len(y_points)):
 		try:
 			y_points[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].mean()
-			y_points_std_dev[i] = algo_data.loc[algo_data["time-step"] == x_points[i]][my_metric].std()
 		except ValueError:
 			print("Error: Likely data for some algorithm selected in --algos is missing. Exiting...")
 			exit(-1)
@@ -86,9 +99,12 @@ for index, label in enumerate(selected_algos):
 	line, = plt.plot(x_points, y_points, color=COLORS[index], linewidth=3, label=label)
 	plot_handles.append(line)
 
+	# Plot the max line
+	plt.plot(x_points, y_points_max, color=COLORS[index], linestyle='dashed', linewidth=1)
+
 	# Calculate the lower and upper bounds for the 2\sigma interval
-	lower_bound = y_points - 2 * y_points_std_dev
-	upper_bound = y_points + 2 * y_points_std_dev
+	# lower_bound = y_points - 2 * y_points_std_dev
+	# upper_bound = y_points + 2 * y_points_std_dev
 
 	# Fill the 2\sigma interval
 	# plt.fill_between(x_points, lower_bound, upper_bound, color=COLORS[index], alpha=0.2)
@@ -107,4 +123,3 @@ plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
 # Save figure
 plt.savefig(save_dir + "/{0}_{1}".format(in_name, my_metric) + ".png", bbox_inches="tight")
 plt.close()
-
