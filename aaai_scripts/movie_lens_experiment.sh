@@ -10,8 +10,7 @@ FILES=(
     "${COMMON_PATH}/movie_lens_instance.txt"
 )
 
-# Default parameters for the Python scri
-# pt
+# Default parameters for the Python script
 STEP=1000
 HORIZON=5000000
 NRUNS=1000
