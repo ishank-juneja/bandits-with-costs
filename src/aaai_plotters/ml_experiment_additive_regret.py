@@ -38,35 +38,22 @@ plot_step = bandit_data["time-step"].iloc[1] - bandit_data["time-step"].iloc[0]
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 
 # Creating the figure and subplots
-fig, axs = plt.subplots(2, 2, figsize=(20, 14))  # 2x2 grid of axes
+fig, axs = plt.subplots(1, 2, figsize=(20, 7))  # 2x2 grid of axes
 # Set wspace to 0 to remove horizontal space between plots
-plt.subplots_adjust(wspace=0, hspace=0, right=0.98, left=0.03, top=0.95, bottom=0.1)
+plt.subplots_adjust(wspace=0, hspace=0, right=0.98, left=0.05, top=0.95, bottom=0.1)
 
 # Set the width of the spines for each subplot
 spine_width = 1  # Thickness of the border
 
-for ax in axs.flat:
-    # Set the spine width
-    for spine in ax.spines.values():
-        spine.set_linewidth(spine_width)
-    # Increase tick label font size
-    ax.tick_params(axis='both', labelsize=14)  # Set font size
+# for ax in axs.flat:
+#     # Set the spine width
+#     for spine in ax.spines.values():
+#         spine.set_linewidth(spine_width)
+#     # Increase tick label font size
+#     ax.tick_params(axis='both', labelsize=14)  # Set font size
 
 # Remove y-axis ticks and labels for the right column subplots twice
-for col in [1]:
-    for row in [0, 1]:
-        axs[row, col].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-
-# Remove y-axis ticks and labels for the right column subplots
-axs[0, 1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-axs[1, 1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-
-# Remove y-axis ticks and labels for the right column subplots
-axs[0, 1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-axs[1, 1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
-
-metrics = ["cost_reg", "qual_reg"]
-labels = ["Cost Regret", "Quality Regret"]
+axs[1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
 
 
 def thousands_formatter(x, pos):
@@ -89,10 +76,12 @@ for idx, algo_name in enumerate(selected_algos):
     algo_data = bandit_data[bandit_data["algo"] == algo_name]
     # Populate y_points in a loop
     for jdx in range(len(y_points)):
-        y_points[jdx] = algo_data.loc[algo_data["time-step"] == x_points[jdx]]['cost_reg'].mean()
-    axs[0, 0].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
+        cost_reg_jdx_data = algo_data.loc[algo_data["time-step"] == x_points[jdx]]['cost_reg'].mean()
+        qual_reg_jdx_data = algo_data.loc[algo_data["time-step"] == x_points[jdx]]['qual_reg'].mean()
+        y_points[jdx] = cost_reg_jdx_data + qual_reg_jdx_data
+    axs[0].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
                    marker=marker_styles[idx], markersize=10, markevery=500)
-    axs[0, 0].set_title(r'Cost Regret', fontweight="bold", fontsize=16)
+    axs[0].set_title(r'Average Regret', fontweight="bold", fontsize=16)
 # - - - - - - - - - - - - - - -
 
 # Worst cost regret
@@ -101,56 +90,22 @@ for idx, algo_name in enumerate(selected_algos):
     # Filter out the data corresponding to just this algorithm
     algo_data = bandit_data[bandit_data["algo"] == algo_name]
     # Populate y_points with the worst case performance
-    max_index = algo_data[algo_data["time-step"] == horizon]['cost_reg'].idxmax()
-    max_seed = algo_data.loc[max_index, 'rs']
-    y_points = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['cost_reg'].values
-    axs[1, 0].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
-                   marker=marker_styles[idx], markersize=10, markevery=500)
-# - - - - - - - - - - - - - - -
-
-# Average quality regret
-y_points = np.zeros_like(x_points)
-for idx, algo_name in enumerate(selected_algos):
-    # Filter out the data corresponding to just this algorithm
-    algo_data = bandit_data[bandit_data["algo"] == algo_name]
-    # Populate y_points in a loop
-    for jdx in range(len(y_points)):
-        y_points[jdx] = algo_data.loc[algo_data["time-step"] == x_points[jdx]]['qual_reg'].mean()
-    axs[0, 1].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
-                   marker=marker_styles[idx], markersize=10, markevery=500)
-    axs[0, 1].set_title(r'Quality Regret', fontweight="bold", fontsize=6)
-# - - - - - - - - - - - - - - -
-
-# - - - - - - - - - - - - - - -
-# Worst quality regret
-y_points = np.zeros_like(x_points)
-for idx, algo_name in enumerate(selected_algos):
-    # Filter out the data corresponding to just this algorithm
-    algo_data = bandit_data[bandit_data["algo"] == algo_name]
-    # Populate y_points with the worst case performance
     max_index = algo_data[algo_data["time-step"] == horizon]['qual_reg'].idxmax()
     max_seed = algo_data.loc[max_index, 'rs']
-    y_points = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['qual_reg'].values
-    axs[1, 1].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
-                   marker=marker_styles[idx], markersize=10, markevery=500)
+    y_points_cost = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['cost_reg'].values
+    y_points_qual = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['qual_reg'].values
+    axs[1].plot(x_points, y_points_cost + y_points_qual, color=COLORS[idx], linewidth=3,
+                label=custom_algo_names[algo_name], marker=marker_styles[idx], markersize=10, markevery=500)
+    axs[1].set_title(r'Worst Regret', fontweight="bold", fontsize=16)
 # - - - - - - - - - - - - - - -
 
-# Ensuring axs[0, 0] and axs[0, 1] share the same y-axis
-y0_min, y0_max = axs[0, 0].get_ylim()
-y1_min, y1_max = axs[0, 1].get_ylim()
+# Ensuring axs[0] and axs[1] share the same y-axis
+y0_min, y0_max = axs[0].get_ylim()
+y1_min, y1_max = axs[1].get_ylim()
 shared_y0_max = max(y0_max, y1_max)
 shared_y0_min = min(y0_min, y1_min)
-axs[0, 0].set_ylim(shared_y0_min, shared_y0_max)
-axs[0, 1].set_ylim(shared_y0_min, shared_y0_max)
-
-# Ensuring axs[1, 0] and axs[1, 1] share the same y-axis
-y2_min, y2_max = axs[1, 0].get_ylim()
-y3_min, y3_max = axs[1, 1].get_ylim()
-shared_y1_max = 1.08 * max(y2_max, y3_max) # Added some % manually
-# for white space between top and bottom row of plots markers
-shared_y1_min = min(y2_min, y3_min)
-axs[1, 0].set_ylim(shared_y1_min, shared_y1_max)
-axs[1, 1].set_ylim(shared_y1_min, shared_y1_max)
+axs[0].set_ylim(shared_y0_min, shared_y0_max)
+axs[1].set_ylim(shared_y0_min, shared_y0_max)
 
 # Add shared x-axis label
 fig.text(0.5, 0.02, 'Time $(t)$', ha='center', va='center', fontsize=16)
@@ -160,18 +115,18 @@ formatter_1K = FuncFormatter(thousands_formatter)
 formatter_1M = FuncFormatter(millions_formatter)
 
 # Apply this formatter_1K to the y-axis of each subplot
-axs[0, 0].yaxis.set_major_formatter(formatter_1K)
-axs[0, 1].yaxis.set_major_formatter(formatter_1K)
-axs[1, 0].yaxis.set_major_formatter(formatter_1K)
-axs[1, 1].yaxis.set_major_formatter(formatter_1K)
-axs[0, 0].xaxis.set_major_formatter(formatter_1M)
-axs[0, 1].xaxis.set_major_formatter(formatter_1M)
-axs[1, 0].xaxis.set_major_formatter(formatter_1M)
-axs[1, 1].xaxis.set_major_formatter(formatter_1M)
+axs[0].yaxis.set_major_formatter(formatter_1K)
+axs[1].yaxis.set_major_formatter(formatter_1K)
+axs[0].xaxis.set_major_formatter(formatter_1M)
+axs[1].xaxis.set_major_formatter(formatter_1M)
 
-# Increase title font size and remove bold style
-for ax, label in zip(axs.flat, labels):
-    ax.set_title(label, fontsize=16, fontweight='normal')
+# Set the shared Common Y axis Label
+axs[0].set_ylabel(r'$\text{Quality\_Reg}() + \text{Cost\_Reg}()$', fontsize=14)
+
+# labels = ["Cost Regret", "Quality Regret"]
+# # Increase title font size and remove bold style
+# for ax, label in zip(axs.flat, labels):
+#     ax.set_title(label, fontsize=16, fontweight='normal')
 
 # Once all plots are fully set up
 # Add grid to each subplot aligned with the actual ticks
@@ -180,10 +135,11 @@ for ax in axs.flat:
     ax.grid(which='both', axis='both', color='k', alpha=0.2)
 
 # Place the legend on the top left sub-plot, that is axs[0, 0]
-handles, labels = axs[0, 0].get_legend_handles_labels()
-axs[0, 0].legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
+handles, labels = axs[0].get_legend_handles_labels()
+axs[0].legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
                  framealpha=1.0, handlelength=3)
 
 plt.show()
-# plt.savefig(f"{args.save_dir}/movie_lens_experiment.pdf", bbox_inches="tight")
-# plt.close()
+
+plt.savefig(f"{args.save_dir}/movie_lens_experiment_summed.pdf", bbox_inches="tight")
+plt.close()
