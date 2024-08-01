@@ -28,9 +28,9 @@ algo_data = bandit_data[bandit_data["algo"] == 'cs-ts']
 algo_horizon_data = algo_data[algo_data["time-step"] == horizon]
 
 # Sort the data by 'qual_reg' in descending order to get the top performances
-sorted_data = algo_horizon_data.sort_values('qual_reg', ascending=False)
+sorted_data = algo_horizon_data.sort_values('cost_reg', ascending=False)
 
 # Display the qual regret for the top 10 seeds and the seeds in a tabular format
 # Making sure all 100 rows are printed
 pd.set_option('display.max_rows', 100)
-print(sorted_data[['rs', 'qual_reg']].head(100))
+print(sorted_data[['rs', 'cost_reg']].head(100))

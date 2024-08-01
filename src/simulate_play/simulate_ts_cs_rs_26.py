@@ -26,9 +26,7 @@ assert horizon >= MIN_HORIZON, "Horizon too small, must be at least 5e6"
 # Step interval for which data is recorded
 STEP = args.STEP
 
-# selected_seeds = [38]
-selected_seeds = [38, 87, 93]
-# selected_seeds = np.arange(100)
+selected_seeds = [26]
 
 if __name__ == '__main__':
     # Read the bandit instance from file

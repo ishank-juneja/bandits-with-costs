@@ -2,52 +2,6 @@ import numpy as np
 import sys
 
 
-def do_bookkeeping_conventional(STEP, arm_samples, k, t, nsamps, mu_hat, reg, al, rs, arm_reward_array, mu_opt,
-                                mu_0, alpha):
-    """
-    STEP: The step-interval at which data is recorded
-    arm_samples: NumPy array of shape (n_arms, horizon) of pre-sampled rewards for each arm at each time step.
-    k: The arm index to sample at time t
-    t: The current time step
-    nsamps: NumPy array of shape (n_arms,) containing the number of times each arm has been sampled.
-    mu_hat: NumPy array of shape (n_arms,) containing the empirical mean reward of each arm.
-    reg: The cumulative regret incurred so far.
-    al: The algorithm being simulated in string name
-    rs: The random seed being used for this run
-    arm_reward_array: np array containing the true mean reward of all the arms
-    mu_opt: The expected return of the best arm
-    mu_0: The return of the default arm in the conservative UCB setup
-    alpha: the subsidy factor on the threshold for checking constraint violation
-    return: The updated nsamps, mu_hat, (cumulative) reg (All the parameters that were modified)
-    """
-    # Get 0/1 reward based on arm/channel choice
-    # Indexing starts from 0, so subtract 1 from t
-    r = arm_samples[k, t - 1]
-    # Increment number of times kth arm sampled
-    nsamps[k] = nsamps[k] + 1
-    # Update empirical reward estimates, compute new empirical mean
-    mu_hat[k] = ((nsamps[k] - 1) * mu_hat[k] + r) / nsamps[k]
-    # Get the incremental expected regret
-    reg_incr = mu_opt - arm_reward_array[k]
-    # Update the expected regret
-    reg += reg_incr
-    # Compute the (any-time / real-time) margin on the constraint
-    margin = - (1 - alpha) * mu_0 * t
-    # Record data at intervals of STEP in file
-    if t % STEP == 0:
-        # Convert nsamps array to a string for CSV output
-        nsamps_str = ';'.join(map(str, nsamps))
-
-        # Writing to standard output (you might want to write to a file instead)
-        sys.stdout.write(
-            "{0}, {1}, {2}, {3:.2f}, {4}\n".format(
-                al, rs, t, reg, nsamps_str
-            )
-        )
-    # Return all the params that were modified
-    return nsamps, mu_hat, reg
-
-
 def do_bookkeeping_conventional(STEP, arm_samples, k, t, nsamps, mu_hat, reg, al, rs, arm_reward_array, mu_opt):
     """
     STEP: The step-interval at which data is recorded

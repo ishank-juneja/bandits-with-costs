@@ -5,7 +5,7 @@ from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
 from src.instance_handling.get_instance import read_instance_from_file
-from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
+from src.policy_library import cs_ts
 
 
 # Command line inputs
@@ -26,9 +26,7 @@ assert horizon >= MIN_HORIZON, "Horizon too small, must be at least 5e6"
 # Step interval for which data is recorded
 STEP = args.STEP
 
-# selected_seeds = [38]
-selected_seeds = [38, 87, 93]
-# selected_seeds = np.arange(100)
+selected_seeds = [77]
 
 if __name__ == '__main__':
     # Read the bandit instance from file
