@@ -45,12 +45,12 @@ plt.subplots_adjust(wspace=0, hspace=0, right=0.98, left=0.05, top=0.95, bottom=
 # Set the width of the spines for each subplot
 spine_width = 1  # Thickness of the border
 
-# for ax in axs.flat:
-#     # Set the spine width
-#     for spine in ax.spines.values():
-#         spine.set_linewidth(spine_width)
-#     # Increase tick label font size
-#     ax.tick_params(axis='both', labelsize=14)  # Set font size
+for ax in axs.flat:
+    # Set the spine width
+    for spine in ax.spines.values():
+        spine.set_linewidth(spine_width)
+    # Increase tick label font size
+    ax.tick_params(axis='both', labelsize=14)  # Set font size
 
 # Remove y-axis ticks and labels for the right column subplots twice
 axs[1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
@@ -121,12 +121,7 @@ axs[0].xaxis.set_major_formatter(formatter_1M)
 axs[1].xaxis.set_major_formatter(formatter_1M)
 
 # Set the shared Common Y axis Label
-axs[0].set_ylabel(r'$\text{Quality\_Reg}() + \text{Cost\_Reg}()$', fontsize=14)
-
-# labels = ["Cost Regret", "Quality Regret"]
-# # Increase title font size and remove bold style
-# for ax, label in zip(axs.flat, labels):
-#     ax.set_title(label, fontsize=16, fontweight='normal')
+axs[0].set_ylabel('Cost Regret + Quality Regret', fontsize=16)
 
 # Once all plots are fully set up
 # Add grid to each subplot aligned with the actual ticks
@@ -139,7 +134,5 @@ handles, labels = axs[0].get_legend_handles_labels()
 axs[0].legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
                  framealpha=1.0, handlelength=3)
 
-plt.show()
-
-plt.savefig(f"{args.save_dir}/movie_lens_experiment_summed.pdf", bbox_inches="tight")
+plt.savefig(f"{args.save_dir}/movie_lens_experiment.pdf", bbox_inches="tight")
 plt.close()

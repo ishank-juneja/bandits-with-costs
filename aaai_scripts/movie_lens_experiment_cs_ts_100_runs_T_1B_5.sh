@@ -20,9 +20,9 @@ for file in "${FILES[@]}"; do
 
     # Extract the basename of the file and append "_log"
     filename=$(basename -- "$file")
-    logname="${filename%.*}_cs_ts_rs_13_log.csv"
+    logname="${filename%.*}_cs_ts_100_runs_1B_5_log.csv"
 
-    python3 src/simulate_play/simulate_ts_cs_rs_13.py -file "$file" -STEP $STEP -horizon $HORIZON > "${OUT_FILE_PATH}${logname}"
+    python3 src/simulate_play/simulate_ts_cs_41_50.py -file "$file" -STEP $STEP -horizon $HORIZON > "${OUT_FILE_PATH}${logname}"
 done
 
 echo "All simulations complete"

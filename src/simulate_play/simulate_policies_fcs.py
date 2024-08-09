@@ -9,15 +9,16 @@ from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
-parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=50)
+parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=500)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=500000)
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=1)
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=10)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
-algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+# algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+algos = ['cs-pe']
 # algos = ['cs-ucb', 'cs-ts']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
@@ -88,9 +89,15 @@ if __name__ == '__main__':
                 episode = 0
                 # Initialize t = 1
                 t = 1
+                # Initialize the proxy horizon to be passed as a parameter to the PE-CS policy
+                proxy_horizon = 2
                 while t < horizon + 1:
+                    # Check if the proxy horizon has been exceeded
+                    if t > proxy_horizon:
+                        # Update the proxy horizon to be twice the current round number
+                        proxy_horizon = proxy_horizon * 2
                     # Get arm to be sampled per the PE-CS policy
-                    k, omega_plus, active_list_plus, episode_plus = cs_pe(mu_hat, nsamps, horizon, last_sampled, omega,
+                    k, omega_plus, active_list_plus, episode_plus = cs_pe(mu_hat, nsamps, proxy_horizon, last_sampled, omega,
                                                                           active_list, episode, alpha=subsidy_factor)
                     omega = omega_plus
                     active_list = active_list_plus
