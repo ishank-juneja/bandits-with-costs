@@ -29,7 +29,6 @@ custom_algo_names = {
 in_file = args.file
 in_name = in_file.split('/')[-1].split('.')[0][:-4]
 
-COLORS = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 marker_styles = ['o', 's', '^', '*']
 
 bandit_data = pd.read_csv(in_file, sep=",")

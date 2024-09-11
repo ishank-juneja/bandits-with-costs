@@ -1,6 +1,7 @@
-# The experiment where we have swept one arm and are looking at the regret
+# Plotter for the experiment where we sweep the return of one arm
+#  while keeping the other arms in the instance fixed
 import pandas as pd
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.ticker as mticker
 import argparse
@@ -26,21 +27,11 @@ custom_algo_names = {
     'cs-etc': 'etc-cs'
 }
 
+# Use difference scatter plot marker style for every algorithm
 marker_styles = ['o', 's', '^', '*']
+COLORS = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 
-# Number of distinct algorithms used
 nalgos = len(selected_algos)
-# Color Management
-# - - - - - - - - - - - -
-# Number of colors should be at least as many as number of LABELS
-COLORS = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f']
-# Choose as many colors as there are algorithms selected_algos
-if len(COLORS) < nalgos:
-    print("Error: Not enough colors present for plotting\nAdd colors or reduce number of algorithms")
-    exit(-1)
-else:
-    COLORS = COLORS[:nalgos]
-# - - - - - - - - - - - -
 
 # Initialize nseeds with -1
 nseeds = -1
@@ -85,39 +76,46 @@ for file_idx, in_file in enumerate(sorted_files):
         x_points[index, file_idx, :] = x_points_all_runs / horizon * 10**5
         y_points[index, file_idx, :] = y_points_all_runs / horizon * 10**5
 
-# Flatten the x_points and y_points arrays along the last 2 dimensions
-x_points = x_points.reshape((nalgos, num_files * nseeds))
-y_points = y_points.reshape((nalgos, num_files * nseeds))
+# Fix x-tick positions to hold the labels for the bandit instance
+#  with the varying arm
+# - - - - - - - - - - - - - -
+# 12 equispaced points between 0 and 1 (inclusive)
+cost_xs = np.linspace(0, 1, 12) # 12 cost regret experiments
+cost_xs_markers = np.linspace(0.6, 0.93, 12) # The value of the varying first arm for the instance family
+# Convert the NumPy array to a list of strings, formatted to 2 decimal places
+cost_xs_markers_str = [f'{x:.2f}' for x in cost_xs_markers]
+# 8 equi-spaced points between 0 and 1 (inclusive)
+qual_xs = np.linspace(0, 1, 8)  # 8 quality regret experiments
+qual_xs_markers = np.linspace(0.01, 0.15, 8)  # The value of the varying second arm for the instance family
+qual_xs_markers_str = [f'{x:.2f}' for x in qual_xs_markers]
+# - - - - - - - - - - - - - -
 
-# Plot once all the data has been collected together by iterating over all the .csv files
-plt.figure(figsize=(10, 10))
+# Sample data for the first scatter plot of size 12
+y1 = np.random.rand(12)
+# Sample data for the second scatter plot
+y2 = np.random.rand(8)
 
-marker_styles = ['o', 's', '^', '*']
+# Create a figure and a set of subplots
+fig, axs = plt.subplots(2, 1, figsize=(8, 10))  # 2 rows, 1 column, figure size 8x10 inches
 
-for idx in range(nalgos):
-    plt.scatter(x_points[idx, :], y_points[idx, :], marker=marker_styles[idx], s=100, color=COLORS[idx], alpha=0.5)
+# Scatter plot on the first subplot
+axs[0].scatter(cost_xs, y1, color='blue')  # You can change the color
+axs[0].set_title('Scatter Plot 1')
+axs[0].set_xlabel('x values')
+axs[0].set_ylabel('y values')
+axs[0].set_xticks(cost_xs)
+axs[0].set_xticklabels(cost_xs_markers_str)  # Setting alphabetical x-tick labels
 
-# Create proxy artists for legend
-legend_handles = [Line2D([0], [0], marker='o', color='w', markerfacecolor=COLORS[index], markersize=10, alpha=1.0) for
-                  index in range(nalgos)]
+# Scatter plot on the second subplot
+axs[1].scatter(qual_xs, y2, color='green')  # You can change the color
+axs[1].set_title('Scatter Plot 2')
+axs[1].set_xlabel('x values')
+axs[1].set_ylabel('y values')
+axs[1].set_xticks(qual_xs)
+axs[1].set_xticklabels(qual_xs_markers_str)  # Setting alphabetical x-tick labels
 
-# Retrieve the path for the directory to save the plots in
-save_dir = args.save_dir
+# Adjust layout to prevent overlap
+plt.tight_layout()
 
-# Use custom algorithm names for the legend
-custom_labels = [custom_algo_names.get(algo, algo) for algo in selected_algos]
-
-plt.legend(legend_handles, custom_labels, fontsize='large')  # Increase font size for legend
-plt.xlabel("Quality Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
-plt.ylabel("Cost Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
-# Set font size of ticks
-plt.tick_params(axis='both', which='major', labelsize=14)
-plt.title("Policy Comparisons", fontweight="bold", fontsize=16)
-# - - - - - - - - - - - -
-
+# Show the plot
 plt.show()
-
-# Save figure
-# plt.savefig(save_dir + "/toy/toy_experiment.pdf", bbox_inches="tight")
-# plt.close()
-
