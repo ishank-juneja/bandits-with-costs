@@ -2,7 +2,6 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
-import matplotlib.ticker as mticker
 import argparse
 import pathlib
 from matplotlib.lines import Line2D

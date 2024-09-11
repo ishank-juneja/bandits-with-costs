@@ -10,12 +10,16 @@ from matplotlib.lines import Line2D
 
 # Command line input
 parser = argparse.ArgumentParser()
-parser.add_argument("--folder", action="store", dest="folder")
+# The folder that contains the example where we are getting Linear Cost Regret
+parser.add_argument("--folder-linear-cost", action="store", dest="lin_cost_folder")
+# The folder that contains the example where we are getting Linear Quality Regret
+parser.add_argument("--folder-linear-qual", action="store", dest="lin_qual_folder")
 parser.add_argument('--algos', type=str, nargs='+', help='Algorithms for regret to be plotted')
 parser.add_argument('--save-dir', type=str, help='The directory to save the plots in.')
 args = parser.parse_args()
 
-log_folder = args.folder
+lin_cost_log_folder = args.lin_cost_folder
+lin_qual_log_folder = args.lin_quality_folder
 selected_algos = args.algos
 
 # Map algo names used in the log files
@@ -37,11 +41,16 @@ nalgos = len(selected_algos)
 nseeds = -1
 
 # Retrieve the number of files to be processed
-sorted_files = sorted(pathlib.Path(log_folder).iterdir(), key=lambda x: x.name)
-num_files = len(sorted_files)
+sorted_files_lin_cost = sorted(pathlib.Path(lin_cost_log_folder).iterdir(), key=lambda x: x.name)
+num_files_cost = len(sorted_files_lin_cost)
+assert num_files_cost == 12, "Number of files in Linear Cost Regret experiment should be 12"
+sorted_file_lin_qual = sorted(pathlib.Path(lin_qual_log_folder).iterdir(), key=lambda x: x.name)
+num_files_qual = len(sorted_file_lin_qual)
+assert num_files_qual == 8, "Number of files in Linear Quality Regret experiment should be 8"
+
 
 # Infer the random seed and ensure its consistency across all the log files
-for file_idx, in_file in enumerate(sorted_files):
+for file_idx, in_file in enumerate(sorted_files_lin_cost):
     # Read in the log file as a pandas dataframe
     bandit_data = pd.read_csv(in_file, sep=",")
     # Infer the number of distinct random seeds
@@ -53,10 +62,14 @@ for file_idx, in_file in enumerate(sorted_files):
     elif nseeds != nseeds_new:
         raise ValueError("Number of seeds mismatch in log files")
 
-# Init numpy arrays to hold the scatter plot data
-x_points = np.zeros((nalgos, num_files, nseeds))
-y_points = np.zeros((nalgos, num_files, nseeds))
 
+# Create a figure and a set of subplots
+fig, axs = plt.subplots(2, 1, figsize=(8, 10))  # 2 rows, 1 column, figure size 8x10 inches
+
+# - - - - - - - - - - - - - -
+# Linear Cost Regret Experiment Family
+# - - - - - - - - - - - - - -
+# Plot the linear cost regret experiment family on the top plot
 # Iterate over all the .csv files present in this folder
 for file_idx, in_file in enumerate(sorted_files):
     # Data Reading and Preprocessing
@@ -73,9 +86,6 @@ for file_idx, in_file in enumerate(sorted_files):
         algo_data = bandit_data[bandit_data["algo"] == label]
         x_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['qual_reg']
         y_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['cost_reg']
-        x_points[index, file_idx, :] = x_points_all_runs / horizon * 10**5
-        y_points[index, file_idx, :] = y_points_all_runs / horizon * 10**5
-
 # Fix x-tick positions to hold the labels for the bandit instance
 #  with the varying arm
 # - - - - - - - - - - - - - -
@@ -88,15 +98,6 @@ cost_xs_markers_str = [f'{x:.2f}' for x in cost_xs_markers]
 qual_xs = np.linspace(0, 1, 8)  # 8 quality regret experiments
 qual_xs_markers = np.linspace(0.01, 0.15, 8)  # The value of the varying second arm for the instance family
 qual_xs_markers_str = [f'{x:.2f}' for x in qual_xs_markers]
-# - - - - - - - - - - - - - -
-
-# Sample data for the first scatter plot of size 12
-y1 = np.random.rand(12)
-# Sample data for the second scatter plot
-y2 = np.random.rand(8)
-
-# Create a figure and a set of subplots
-fig, axs = plt.subplots(2, 1, figsize=(8, 10))  # 2 rows, 1 column, figure size 8x10 inches
 
 # Scatter plot on the first subplot
 axs[0].scatter(cost_xs, y1, color='blue')  # You can change the color
@@ -105,6 +106,9 @@ axs[0].set_xlabel('x values')
 axs[0].set_ylabel('y values')
 axs[0].set_xticks(cost_xs)
 axs[0].set_xticklabels(cost_xs_markers_str)  # Setting alphabetical x-tick labels
+
+# - - - - - - - - - - - - - -
+
 
 # Scatter plot on the second subplot
 axs[1].scatter(qual_xs, y2, color='green')  # You can change the color
