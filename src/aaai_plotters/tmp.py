@@ -1,25 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Generate x values equi-spaced between 0.01 and 0.15
-x_values = np.linspace(0.01, 0.15, 10)
-
-# Generate y values (can be any function of x, here using y = x for simplicity)
-y_values = x_values
+# Sample data
+x_markers = np.arange(12)  # x-markers from 0 to 11
+y_values = np.random.rand(12, 50)  # Random y-values for each x-marker, 50 per marker
 
 # Create the plot
-plt.figure(figsize=(8, 4))
-plt.plot(x_values, y_values, marker='o', linestyle='-', color='b')
+plt.figure(figsize=(10, 6))
+for i, x in enumerate(x_markers):
+    plt.scatter([x] * len(y_values[i]), y_values[i], alpha=0.5)  # Plot all y-values for each x
 
-# Adding markers with numerical values as annotations
-for i, value in enumerate(x_values):
-    plt.text(value, value, f'{value:.2f}', fontsize=12, ha='right')
-
-# Set labels and title
-plt.xlabel('X-axis')
-plt.ylabel('Y-axis')
-plt.title('Equi-spaced Markers with Numerical Values')
+# Customizing the plot
+plt.title('Scatter Plot of Multiple Y-values for Each X-marker')
+plt.xlabel('X-marker index')
+plt.ylabel('Y-values')
+plt.grid(True)
 
 # Show the plot
-plt.grid(True)
 plt.show()
