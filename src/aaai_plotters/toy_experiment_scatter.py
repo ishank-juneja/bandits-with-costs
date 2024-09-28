@@ -17,12 +17,13 @@ parser.add_argument("--folder-linear-cost", action="store", dest="lin_cost_folde
 # This lin-qual-regret family has been set up such that there is no quality regret
 parser.add_argument("--folder-linear-qual", action="store", dest="lin_qual_folder")
 parser.add_argument('--algos', type=str, nargs='+', help='Algorithms for regret to be plotted')
-parser.add_argument('--save-dir', type=str, help='The directory to save the plots in.')
+parser.add_argument('--save-dir', type=str, help='The directory to save the plots in.', dest='save_dir')
 args = parser.parse_args()
 
 lin_cost_log_folder = args.lin_cost_folder
 lin_qual_log_folder = args.lin_qual_folder
 selected_algos = args.algos
+save_dir = args.save_dir
 
 # Map algo names used in the log files
 #  to algo names used in the code
@@ -66,16 +67,16 @@ qual_xs = np.linspace(0, 1, 8)  # 8 quality regret experiments
 qual_xs_markers = np.linspace(0.01, 0.15, 8)  # The value of the varying second arm for the instance family
 qual_xs_markers_str = [f'{x:.2f}' for x in qual_xs_markers]
 
-axs[0].set_title('Scatter Plot 1')
-axs[0].set_xlabel('x values')
-axs[0].set_ylabel('y values')
+axs[0].set_title('Toy Experiment 1')
+axs[0].set_xlabel('Expected Return of Varying Arm')
+axs[0].set_ylabel('Cost Regret')
 axs[0].set_xticks(cost_xs)
 axs[0].set_xticklabels(cost_xs_markers_str)  # Setting alphabetical x-tick labels
 
 # Scatter plot on the second subplot
-axs[1].set_title('Scatter Plot 2')
-axs[1].set_xlabel('x values')
-axs[1].set_ylabel('y values')
+axs[1].set_title('Toy Experiment 2')
+axs[1].set_xlabel('Expected Return of Varying Arm')
+axs[1].set_ylabel('Quality Regret')
 axs[1].set_xticks(qual_xs)
 axs[1].set_xticklabels(qual_xs_markers_str)  # Setting alphabetical x-tick labels
 
@@ -121,7 +122,10 @@ for file_idx, in_file in enumerate(sorted_files_lin_cost):
 # Scatter plot on the first subplot
 for idx in range(nalgos):
     for jdx, mark_x in enumerate(cost_xs):
-        axs[0].scatter([mark_x] * nseeds, cost_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx], s=100, alpha=0.1)
+        # axs[0].scatter([mark_x] * nseeds, cost_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx], s=100, alpha=0.1)
+        # Plot a single point per algorithm per x marker with the average:
+        #  - Average over all seeds
+        axs[0].scatter(mark_x, np.mean(cost_regret_data[idx, jdx]), color='k', marker=marker_styles[idx], s=100)
 # Create legend elements
 legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w', label=selected_algos[i],
                           markerfacecolor=COLORS[i], markersize=10) for i in range(nalgos)]
@@ -172,7 +176,10 @@ for file_idx, in_file in enumerate(sorted_file_lin_qual):
 # Scatter plot on the second subplot
 for idx in range(nalgos):
     for jdx, mark_x in enumerate(qual_xs):
-        axs[1].scatter([mark_x] * nseeds, qual_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx], s=100, alpha=0.1)
+        # axs[1].scatter([mark_x] * nseeds, qual_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx], s=100, alpha=0.1)
+        # Plot a single point per algorithm per x marker with the average:
+        #  - Average over all seeds
+        axs[1].scatter(mark_x, np.mean(qual_regret_data[idx, jdx]), color='k', marker=marker_styles[idx], s=100)
 
 # Create legend elements for the second plot
 legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w', label=selected_algos[i],
@@ -185,5 +192,6 @@ axs[1].legend(handles=legend_elements, title="Algorithms", loc='upper right')
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
-# Show the plot
-plt.show()
+# Save figure
+plt.savefig(save_dir + "/toy/toy_experiment_averages.pdf", bbox_inches="tight")
+plt.close()

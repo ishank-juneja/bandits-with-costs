@@ -70,7 +70,7 @@ def millions_formatter(x, pos):
 x_points = np.arange(0, horizon + 1, plot_step)
 
 # Average cost regret
-y_points = np.zeros_like(x_points)
+y_points = np.zeros_like(x_points, dtype=float)
 for idx, algo_name in enumerate(selected_algos):
     # Filter out the data corresponding to just this algorithm
     algo_data = bandit_data[bandit_data["algo"] == algo_name]
@@ -134,5 +134,6 @@ handles, labels = axs[0].get_legend_handles_labels()
 axs[0].legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
                  framealpha=1.0, handlelength=3)
 
+# plt.show()
 plt.savefig(f"{args.save_dir}/movie_lens_experiment.pdf", bbox_inches="tight")
 plt.close()

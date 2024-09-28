@@ -3,26 +3,42 @@ import math
 from math import ceil, log, sqrt
 
 
-def ref_arm_ell_UCB(p_estimates, nsamps, t, costs, ref_arm_idx):
-    # Compute the upper confidence bounds for all arms
-    I_ucb = p_estimates + np.sqrt(2 * np.log(t) / nsamps)
-    # Compute the LCB for the reference arm
-    lcb_ell = p_estimates[ref_arm_idx] - np.sqrt(2 * np.log(t) / nsamps[ref_arm_idx])
-    # Filter arms with UCB value greater than theta
-    valid_arms = np.where(I_ucb > lcb_ell)[0]
-
-    # If no arm has UCB greater than theta, return a random arm
-    if len(valid_arms) == 0:
-        return np.random.choice(range(len(p_estimates)))
-
-    # Among the valid arms, find the one with the smallest cost
-    min_cost = np.min(costs[valid_arms])
-    # Get all indices from the original array where the cost equals the minimum cost
-    min_cost_indices = np.where(costs == min_cost)[0]
-
-    # Select a random index from these minimum cost indices
-    k = np.random.choice(min_cost_indices)
-
+def cs_ucb_known_ell(ref_ell_idx: int, mu_hat: np.array, costs: np.array, t: int, nsamps, horizon: int,
+                     alpha: float=0.0):
+    """
+    Implementation of the CS-UCB algorithm as described in the MAB-CS paper
+    https://proceedings.mlr.press/v130/sinha21a.html
+    ***********************
+    :param mu_hat: Array of empirical mean rewards
+    :param costs: Array of known fixed costs
+    :param t: Time step
+    :param nsamps: Array of number of samples associated with each arm
+    :param horizon: Int for horizon budget
+    :param alpha: Subsidy factor, lies in [0, 1]
+    :return: The arm k to be sampled
+    """
+    # Infer the number of arms
+    n_arms = len(mu_hat)
+    # Initially sample all arms at-least once, then jump into the
+    #  the cost-subsidy style decision rules
+    if t < n_arms + 1:
+        # Sample the arm with (array) index (t - 1)
+        k = t - 1
+    else:
+        # Compute the UCB index associated with every single arm
+        I_ucb_raw = mu_hat + np.sqrt(2 * log(horizon) / nsamps)
+        I_ucb = np.minimum(I_ucb_raw, 1.0)
+        # Receive all the indices of feasible arms
+        feasible_arms = np.where(I_ucb >= (1 - alpha) * I_ucb[ref_ell_idx])[0]
+        # Determine the value of the cheapest cost in the feasible set
+        min_cost = np.min(costs[feasible_arms])
+        # Get all the indices in original array where the cost
+        #  equals min_cost
+        min_cost_indices_overall = np.where(costs == min_cost)[0]
+        # Take the intersection of feasible arms and minimum cost indices overall
+        feasible_min_cost_indices = np.intersect1d(feasible_arms, min_cost_indices_overall)
+        # Select a random index among these min cost indices
+        k = np.random.choice(feasible_min_cost_indices)
     return k
 
 

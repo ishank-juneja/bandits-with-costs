@@ -2,7 +2,7 @@ import numpy as np
 from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
 import argparse
-from src.policy_library import improved_ucb, asymmetric_pe, pairwise_elimination, ref_arm_ell_UCB, UCB
+from src.policy_library import improved_ucb, asymmetric_pe, pairwise_elimination, cs_ucb_known_ell, UCB
 from src.instance_handling.get_instance import read_instance_from_file
 
 
@@ -16,7 +16,7 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['ucb', 'pairwise-elimination', 'asymmetric-pe', 'ref-arm-ell-UCB']
+algos = ['pe', 'asymmetric-pe', 'ucb-cs']
 
 # algos = ['asymmetric-pe']
 # Horizon/ max number of iterations
@@ -92,54 +92,7 @@ if __name__ == '__main__':
             #  to the output file
             sys.stdout.write("{0}, {1}, {2}, {3:.2f}, {4:.2f}, {5}\n".format(al, rs, 0, qual_reg, cost_reg,
                                                                              ';'.join(['0'] * n_arms)))
-            if al == 'ucb':
-                # Array to hold empirical estimates of each arms reward expectation
-                mu_hat = np.zeros(n_arms)
-                # Number of times a certain arm is sampled, each arm is sampled once at start
-                nsamps = np.zeros(n_arms, dtype=np.int32)
-                # Begin policy loop
-                for t in range(1, horizon + 1):
-                    # To initialise estimates from all arms
-                    if t < n_arms + 1:
-                        # sample the arm with (array) index (t - 1)
-                        k = t - 1
-                    else:
-                        # Pass the latest params to the policy and get the arm index to sample
-                        k = UCB(mu_hat, nsamps, t)
-                    # Do book-keeping for this policy, and receive all the params that were modified
-                    nsamps, mu_hat, qual_reg, cost_reg = (
-                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
-                                                    mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
-                                                    rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
-                                                    arm_cost_array=arm_cost_array, c_calib=c_calib))
-            elif al == 'improved-ucb':
-                # Array to hold empirical estimates of each arms reward expectation
-                mu_hat = np.zeros(n_arms)
-                # Number of times a certain arm is sampled, each arm is sampled once at start
-                nsamps = np.zeros(n_arms, dtype=np.int32)
-                # Create and initialize variables to track delta_tilde, and B_0
-                delta_tilde = 1.0
-                # Create a list out of the indices of all the arms
-                # We always ensure that any updated B remains sorted
-                B = list(range(n_arms))
-                # Variable to hold the arm in B_m that was most recently sampled
-                #  since the way the algorithm works, we need to keep sampling the same arm
-                #  until we have sampled it n_m times
-                last_sampled = 0
-                # Begin policy loop
-                for t in range(1, horizon + 1):
-                    # Since the algorithm works in a phased/batched way, the quantities delta_tilde and B
-                    #  will be updated occasionally like a step function
-                    k, delta_tilde, B = improved_ucb(mu_hat, nsamps, horizon, delta_tilde, B, last_sampled)
-                    # Update the last sampled arm index
-                    last_sampled = k
-                    # Do book-keeping for this policy, and receive all the params that were modified
-                    nsamps, mu_hat, qual_reg, cost_reg = (
-                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
-                                                    mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
-                                                    rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
-                                                    arm_cost_array=arm_cost_array, c_calib=c_calib))
-            elif al == 'pairwise-elimination':
+            if al == 'pe':
                 # Preprocessing
                 # - - - - - - - -
                 # Perform pruning by removing arms with cost strictly higher than arm ell
@@ -229,7 +182,7 @@ if __name__ == '__main__':
                                                     mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
                                                     rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
                                                     arm_cost_array=arm_cost_array, c_calib=c_calib))
-            elif al == 'ref-arm-ell-UCB':
+            elif al == 'ucb-cs':
                 # Preprocessing (identical to regular pe)
                 # - - - - - - - -
                 # Perform pruning by removing arms with cost strictly higher than arm ell
@@ -244,28 +197,25 @@ if __name__ == '__main__':
                 # Update the arm_samples to be used to simulate rewards
                 arm_samples = arm_samples[:min_idx, :]
                 # - - - - - - - -
-
                 # Array to hold empirical estimates of each arms reward expectation
                 mu_hat = np.zeros(n_arms_pruned)
                 # Number of times a certain arm is sampled, each arm is sampled once at start
-                nsamps_logging = np.zeros(n_arms, dtype=np.int32)   # The nsamps that is logged to the output file
-                nsamps_algo = np.zeros(n_arms_pruned, dtype=np.int32) # For computing UCB indices in the algorithm
+                nsamps = np.zeros(n_arms_pruned, dtype=np.int32)
+                # Begin policy loop
                 for t in range(1, horizon + 1):
-                    # To initialise estimates from all arms
-                    if t < n_arms_pruned + 1:
-                        # sample the arm with (array) index (t - 1)
-                        k = t - 1
-                    else:
-                        # Update ucb index value for all arms based on quantities from
-                        # previous iteration and obtain arm index to sample
-                        k = ref_arm_ell_UCB(mu_hat, nsamps_algo, t, arm_cost_array, ref_arm_ell)
+                    # Receive the arm index to sample, and the updated delta_tilde, and episode number
+                    k = cs_ucb_known_ell(ref_ell_idx=ref_arm_ell,
+                                         mu_hat=mu_hat, costs=arm_cost_array,
+                                         t=t, nsamps=nsamps, horizon=horizon)
+                    # Update the last sampled arm index
+                    last_sampled = k
+                    # Do book-keeping for this policy, and receive all the params that were modified
                     nsamps, mu_hat, qual_reg, cost_reg = (
-                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps_logging,
+                        do_bookkeeping_cost_subsidy(STEP=STEP, arm_samples=arm_samples, k=k, t=t, nsamps=nsamps,
                                                     mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
                                                     rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
                                                     arm_cost_array=arm_cost_array, c_calib=c_calib))
-                    # Update nsamps_algo using nsamps_logging
-                    nsamps_algo = nsamps[:n_arms_pruned]
+
             else:
                 raise ValueError(f"Unknown algorithm: {al}")
 
