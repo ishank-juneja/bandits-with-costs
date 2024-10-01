@@ -18,7 +18,7 @@ in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
 # algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
-algos = ['cs-pe']
+algos = ['cs-pe', 'cs-ts']
 # algos = ['cs-ucb', 'cs-ts']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)

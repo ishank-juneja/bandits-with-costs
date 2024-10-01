@@ -1,5 +1,0 @@
-# Instance 5
-instance_id: FCS005
-arm_reward_array: 0.29, 0.31, 0.5
-subsidy_factor: 0.4
-arm_cost_array: 0.0, 0.5, 1.0

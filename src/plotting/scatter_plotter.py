@@ -79,8 +79,19 @@ for file_idx, in_file in enumerate(sorted_files):
         algo_data = bandit_data[bandit_data["algo"] == label]
         x_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['qual_reg']
         y_points_all_runs = algo_data.loc[algo_data["time-step"] == horizon]['cost_reg']
-        x_points[index, file_idx, :] = x_points_all_runs / horizon * 10**5
-        y_points[index, file_idx, :] = y_points_all_runs / horizon * 10**5
+        # Visualize the fresh (Quality_reg, COst_reg) data as a pandas dataframe
+        # Create a DataFrame to store the results
+        results_df = pd.DataFrame({
+            'Algorithm': [selected_algos[index]] * len(x_points_all_runs),
+            'Quality Regret': x_points_all_runs,
+            'Cost Regret': y_points_all_runs
+        })
+        # Print the name of the file as the heading
+        print("\nFile: ", in_file)
+        # Print the DataFrame
+        print(results_df)
+        x_points[index, file_idx, :] = x_points_all_runs
+        y_points[index, file_idx, :] = y_points_all_runs
 
 # Flatten the x_points and y_points arrays along the last 2 dimensions
 x_points = x_points.reshape((nalgos, num_files * nseeds))
@@ -103,8 +114,8 @@ save_dir = args.save_dir
 custom_labels = [custom_algo_names.get(algo, algo) for algo in selected_algos]
 
 plt.legend(legend_handles, custom_labels, fontsize='large')  # Increase font size for legend
-plt.xlabel("Quality Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
-plt.ylabel("Cost Regret (Per Round)", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
+plt.xlabel("Quality Regret", fontweight="bold", fontsize=14)  # Increase font size for x-axis label
+plt.ylabel("Cost Regret", fontweight="bold", fontsize=14)  # Increase font size for y-axis label
 # Set font size of ticks
 plt.tick_params(axis='both', which='major', labelsize=14)
 plt.title("Policy Comparisons", fontweight="bold", fontsize=16)

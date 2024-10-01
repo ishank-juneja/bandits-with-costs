@@ -1,5 +1,0 @@
-# Instance 5
-instance_id: ELL_05
-arm_reward_array: 0.7, 0.7, 0.75, 0.74
-ref_arm_ell: 1
-arm_cost_array: 0.15, 0.2, 0.25, 0.25

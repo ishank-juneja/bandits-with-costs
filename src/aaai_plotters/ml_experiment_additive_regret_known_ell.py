@@ -2,9 +2,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import numpy as np
 import argparse
-import pathlib
 from matplotlib.ticker import FuncFormatter
-from matplotlib.lines import Line2D
 # For Type 3 free fonts in the figures
 plt.rcParams['pdf.fonttype'] = 42
 plt.rcParams['ps.fonttype'] = 42
@@ -24,6 +22,14 @@ in_name = in_file.split('/')[-1].split('.')[0][:-4]
 COLORS = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 marker_styles = ['o', 's', '^', '*']
 
+data_types = {
+    'algo': 'str',
+    'rs': 'int',
+    'time-step': 'int',
+    'qual_reg': 'float',
+    'cost_reg': 'float',
+    'nsamps': 'str'  # This is to initially read as string to handle semicolon-separated values
+}
 bandit_data = pd.read_csv(in_file, sep=",")
 horizon = bandit_data["time-step"].max()
 plot_step = bandit_data["time-step"].iloc[1] - bandit_data["time-step"].iloc[0]
@@ -79,7 +85,7 @@ formatter_1K = FuncFormatter(thousands_formatter)
 formatter_1M = FuncFormatter(millions_formatter)
 
 # Apply this formatter_1K to the y-axis of each subplot
-ax.yaxis.set_major_formatter(formatter_1K)
+# ax.yaxis.set_major_formatter(formatter_1K)
 ax.xaxis.set_major_formatter(formatter_1M)
 
 # Set the shared Common Y axis Label
@@ -94,6 +100,5 @@ handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
                  framealpha=1.0, handlelength=3)
 
-plt.show()
-# plt.savefig(f"{args.save_dir}/movie_lens_experiment_pe.pdf", bbox_inches="tight")
-# plt.close()
+plt.savefig(f"{args.save_dir}/movie_lens_experiment_pe.pdf", bbox_inches="tight")
+plt.close()

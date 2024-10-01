@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Common path variable
-COMMON_PATH="aaai_data/bandit_instances/linear_cost_regret_family/"
+COMMON_PATH="aaai_data/bandit_instances/toy2/"
 # Result path variable
-OUT_FILE_PATH="aaai_results/_run_logs/linear_cost_regret_family/"
+OUT_FILE_PATH="aaai_results/_run_logs/toy2/"
 
 # Default parameters for the Python script
-STEP=500
-HORIZON=2000000
+STEP=1000
+HORIZON=500000
 NRUNS=50
 
 # Use find with a while read loop to process each file
