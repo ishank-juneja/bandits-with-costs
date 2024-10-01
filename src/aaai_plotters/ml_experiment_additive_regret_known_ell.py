@@ -22,21 +22,13 @@ in_name = in_file.split('/')[-1].split('.')[0][:-4]
 COLORS = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red']
 marker_styles = ['o', 's', '^', '*']
 
-data_types = {
-    'algo': 'str',
-    'rs': 'int',
-    'time-step': 'int',
-    'qual_reg': 'float',
-    'cost_reg': 'float',
-    'nsamps': 'str'  # This is to initially read as string to handle semicolon-separated values
-}
 bandit_data = pd.read_csv(in_file, sep=",")
 horizon = bandit_data["time-step"].max()
 plot_step = bandit_data["time-step"].iloc[1] - bandit_data["time-step"].iloc[0]
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 
 # Creating the figure and subplots
-fig, ax = plt.subplots(figsize=(10, 7))
+fig, ax = plt.subplots(figsize=(8, 5))
 
 # Set the width of the spines for each subplot
 spine_width = 1  # Thickness of the border
@@ -70,7 +62,7 @@ for idx, algo_name in enumerate(selected_algos):
         y_points[jdx] = cost_reg_jdx_data + qual_reg_jdx_data
     ax.plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=algo_name,
                    marker=marker_styles[idx], markersize=10, markevery=500)
-    ax.set_title(r'Average Regret', fontweight="bold", fontsize=16)
+ax.set_title(r'Average Regret', fontweight="bold", fontsize=18)
 # - - - - - - - - - - - - - - -
 
 # Ensuring axs[0] and axs[1] share the same y-axis
@@ -78,7 +70,7 @@ y0_min, y0_max = ax.get_ylim()
 ax.set_ylim(y0_min, y0_max)
 
 # Add shared x-axis label
-fig.text(0.5, 0.02, 'Time $(t)$', ha='center', va='center', fontsize=16)
+ax.set_xlabel('Time $(t)$', fontsize=16, fontweight='bold')
 
 # Create an instance of FuncFormatter using your custom function
 formatter_1K = FuncFormatter(thousands_formatter)
@@ -86,10 +78,15 @@ formatter_1M = FuncFormatter(millions_formatter)
 
 # Apply this formatter_1K to the y-axis of each subplot
 # ax.yaxis.set_major_formatter(formatter_1K)
+# ax.set_xticklabels(ax.get_xticks(), fontsize=16, fontweight='bold') # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+ax.set_xticklabels(ax.get_xticks(), fontsize=16) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
 ax.xaxis.set_major_formatter(formatter_1M)
+# ax.set_yticklabels(ax.get_yticks(), fontsize=16, fontweight='bold') # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+ax.set_yticklabels(ax.get_yticks(), fontsize=16) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+ax.yaxis.set_major_formatter(formatter_1K)
 
 # Set the shared Common Y axis Label
-ax.set_ylabel('Cost Regret + Quality Regret', fontsize=16)
+ax.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 
 # Once all plots are fully set up
 # No need to redraw the canvas here, as all settings are finalized
@@ -97,8 +94,10 @@ ax.grid(which='both', axis='both', color='k', alpha=0.2)
 
 # Place the legend on the top left sub-plot, that is axs[0, 0]
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
-                 framealpha=1.0, handlelength=3)
+ax.legend(handles, labels, loc='upper left', fontsize=16, framealpha=1.0,
+          handlelength=3, columnspacing=0.5)
+
+# plt.show()
 
 plt.savefig(f"{args.save_dir}/movie_lens_experiment_pe.pdf", bbox_inches="tight")
 plt.close()

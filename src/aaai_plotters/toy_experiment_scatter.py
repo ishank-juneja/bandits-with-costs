@@ -7,6 +7,9 @@ import matplotlib.ticker as mticker
 import argparse
 import pathlib
 from matplotlib.lines import Line2D
+# For Type 3 free fonts in the figures
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
 
 # Command line input
 parser = argparse.ArgumentParser()
@@ -46,7 +49,7 @@ assert num_files1 == 12, "Number of files in Linear Cost Regret experiment shoul
 
 
 # Create a 2 x 1 figure. First we shall do all the things that go into plotting the
-fig, axs = plt.subplots(1, 1, figsize=(8, 5))  # 2 rows, 1 column, figure size 8x10 inches
+fig, axs = plt.subplots(1, 1, figsize=(10, 6))
 # Fix x-tick positions to hold the labels for the bandit instance
 #  with the varying arm
 # - - - - - - - - - - - - - -
@@ -57,11 +60,14 @@ plot1_xs_markers = np.linspace(0.6, 0.93, 12) # The value of the varying first a
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
 plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
 
-axs.set_title('Toy Experiment')
-axs.set_xlabel('Expected Return of Varying Arm')
-axs.set_ylabel('Cost Regret + Quality Regret')
+axs.set_title('Toy Experiment', fontsize=18, fontweight='bold', pad=10)
+axs.set_xlabel('Expected Return of Varying Arm', fontsize=16, labelpad=10, fontweight='bold')
+axs.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_xticks(plot1_xs)
-axs.set_xticklabels(plot1_xs_markers_str)  # Setting alphabetical x-tick labels
+# axs.set_xticklabels(plot1_xs_markers_str, fontsize=16, fontweight='bold') # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+axs.set_xticklabels(plot1_xs_markers_str, fontsize=16) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+# axs.set_yticklabels(axs.get_yticks(), fontsize=16, fontweight='bold')
+axs.set_yticklabels(axs.get_yticks(), fontsize=16)
 
 # Part 1 START
 # - - - - - - - - - -
@@ -108,30 +114,27 @@ for file_idx, in_file in enumerate(sorted_files_folder1):
 summed_regret_data = cost_regret_data + qual_regret_data
 
 # Scatter plot on the first subplot
-for idx in range(nalgos):
+for idx, algo_name in enumerate(selected_algos):
     for jdx, mark_x in enumerate(plot1_xs):
-        axs.scatter([mark_x] * nseeds, summed_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx], s=100, alpha=0.1)
+        axs.scatter([mark_x] * nseeds, summed_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx],
+                    s=100, alpha=0.1, label=custom_algo_names[algo_name])
         # Plot a single point per algorithm per x marker with the average:
         #  - Average over all seeds
         # axs.scatter(mark_x, np.mean(cost_regret_data[idx, jdx]), color='k', marker=marker_styles[idx], s=100)
-# Create legend elements
-legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w', label=selected_algos[i],
-                          markerfacecolor=COLORS[i], markersize=10) for i in range(nalgos)]
+# Apply logarithmic scale to the y-axis
+axs.set_yscale('log')
+
 
 # Add legend to the first subplot
-axs.legend(handles=legend_elements, title="Algorithms", loc='upper right')
-# Part 1 END
-
-# Create legend elements for the second plot
-legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w', label=selected_algos[i],
-                          markerfacecolor=COLORS[i], markersize=10) for i in range(nalgos)]
-
-# Add legend to the axs
-axs.legend(handles=legend_elements, title="Algorithms", loc='upper right')
-# Part 2 END
+legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w',
+                          label=custom_algo_names[selected_algos[i]], markerfacecolor=COLORS[i], markersize=18)
+                   for i in range(nalgos)]
+axs.legend(handles=legend_elements, loc='upper left', ncol=2, fontsize=16, columnspacing=0.2)
 
 # Adjust layout to prevent overlap
 plt.tight_layout()
+
+# plt.show()
 
 # Save figure
 plt.savefig(save_dir + "/toy/toy_experiment_pecs.pdf", bbox_inches="tight")
