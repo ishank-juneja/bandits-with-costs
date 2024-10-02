@@ -20,10 +20,10 @@ selected_algos = ['cs-pe', 'cs-ucb', 'cs-ts', 'cs-etc']
 
 # Map algo names used in the log files to algo names used in the writing
 custom_algo_names = {
-    'cs-pe': 'PE-CS',
-    'cs-ucb': 'UCB-CS',
-    'cs-ts': 'TS-CS',
-    'cs-etc': 'ETC-CS'
+    'cs-pe': 'pe-cs',
+    'cs-ucb': 'ucb-cs',
+    'cs-ts': 'ts-cs',
+    'cs-etc': 'etc-cs'
 }
 
 in_file = args.file
@@ -38,7 +38,7 @@ plot_step = bandit_data["time-step"].iloc[1] - bandit_data["time-step"].iloc[0]
 bandit_data['nsamps'] = bandit_data['nsamps'].apply(lambda x: np.fromstring(x, dtype=int, sep=';'))
 
 # Creating the figure and subplots
-fig, axs = plt.subplots(1, 2, figsize=(20, 7))  # 2x2 grid of axes
+fig, axs = plt.subplots(1, 2, figsize=(16, 6))  # 2x2 grid of axes
 # Set wspace to 0 to remove horizontal space between plots
 plt.subplots_adjust(wspace=0, hspace=0, right=0.98, left=0.05, top=0.95, bottom=0.1)
 
@@ -50,7 +50,7 @@ for ax in axs.flat:
     for spine in ax.spines.values():
         spine.set_linewidth(spine_width)
     # Increase tick label font size
-    ax.tick_params(axis='both', labelsize=14)  # Set font size
+    ax.tick_params(axis='both', labelsize=22)  # Set font size
 
 # Remove y-axis ticks and labels for the right column subplots twice
 axs[1].tick_params(axis='y', which='both', left=False, right=False, labelleft=False, labelright=False)
@@ -81,7 +81,7 @@ for idx, algo_name in enumerate(selected_algos):
         y_points[jdx] = cost_reg_jdx_data + qual_reg_jdx_data
     axs[0].plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
                    marker=marker_styles[idx], markersize=10, markevery=500)
-    axs[0].set_title(r'Average Regret', fontweight="bold", fontsize=16)
+    axs[0].set_title(r'Average Regret', fontweight="bold", fontsize=24, pad=10)
 # - - - - - - - - - - - - - - -
 
 # Worst cost regret
@@ -96,7 +96,7 @@ for idx, algo_name in enumerate(selected_algos):
     y_points_qual = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['qual_reg'].values
     axs[1].plot(x_points, y_points_cost + y_points_qual, color=COLORS[idx], linewidth=3,
                 label=custom_algo_names[algo_name], marker=marker_styles[idx], markersize=10, markevery=500)
-    axs[1].set_title(r'Worst Regret', fontweight="bold", fontsize=16)
+    axs[1].set_title(r'Worst Regret', fontweight="bold", fontsize=24, pad=10)
 # - - - - - - - - - - - - - - -
 
 # Ensuring axs[0] and axs[1] share the same y-axis
@@ -108,20 +108,25 @@ axs[0].set_ylim(shared_y0_min, shared_y0_max)
 axs[1].set_ylim(shared_y0_min, shared_y0_max)
 
 # Add shared x-axis label
-fig.text(0.5, 0.02, 'Time $(t)$', ha='center', va='center', fontsize=16)
+fig.text(0.5, 0.0, 'Time $(t)$', ha='center', va='center', fontsize=22, fontweight='bold')
 
 # Create an instance of FuncFormatter using your custom function
 formatter_1K = FuncFormatter(thousands_formatter)
 formatter_1M = FuncFormatter(millions_formatter)
 
 # Apply this formatter_1K to the y-axis of each subplot
-axs[0].yaxis.set_major_formatter(formatter_1K)
-axs[1].yaxis.set_major_formatter(formatter_1K)
+
+axs[0].set_xticklabels(axs[0].get_xticks(), fontsize=22) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+axs[0].set_yticklabels(axs[0].get_yticks(), fontsize=22) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+axs[1].set_xticklabels(axs[1].get_xticks(), fontsize=22) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
+axs[1].set_yticklabels(axs[1].get_yticks(), fontsize=22) # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
 axs[0].xaxis.set_major_formatter(formatter_1M)
+axs[0].yaxis.set_major_formatter(formatter_1K)
 axs[1].xaxis.set_major_formatter(formatter_1M)
+axs[1].yaxis.set_major_formatter(formatter_1K)
 
 # Set the shared Common Y axis Label
-axs[0].set_ylabel('Cost Regret + Quality Regret', fontsize=16)
+axs[0].set_ylabel('Cost Regret + Quality Regret', fontsize=24, fontweight='bold')
 
 # Once all plots are fully set up
 # Add grid to each subplot aligned with the actual ticks
@@ -131,9 +136,9 @@ for ax in axs.flat:
 
 # Place the legend on the top left sub-plot, that is axs[0, 0]
 handles, labels = axs[0].get_legend_handles_labels()
-axs[0].legend(handles, labels, loc=(0.03, 0.85), ncol=2, fontsize=11,
-                 framealpha=1.0, handlelength=3)
+axs[0].legend(handles, labels, loc='upper left', ncol=2, fontsize=22,
+                 framealpha=1.0, handlelength=3, columnspacing=0.5)
 
 # plt.show()
-plt.savefig(f"{args.save_dir}/movie_lens_experiment.pdf", bbox_inches="tight")
+plt.savefig(f"{args.save_dir}/movie_lens_experiment_pecs.pdf", bbox_inches="tight")
 plt.close()

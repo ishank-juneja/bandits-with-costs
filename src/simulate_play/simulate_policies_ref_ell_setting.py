@@ -9,14 +9,14 @@ from src.instance_handling.get_instance import read_instance_from_file
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
-parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=10000)
-parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=int(5e6))
-parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=5)
+parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1000)
+parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=int(4e5))
+parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['pe', 'asymmetric-pe', 'ucb-cs']
+algos = ['pe', 'asymmetric-pe']
 
 # algos = ['asymmetric-pe']
 # Horizon/ max number of iterations
