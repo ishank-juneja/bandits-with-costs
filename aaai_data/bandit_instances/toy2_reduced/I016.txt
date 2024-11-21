@@ -1,4 +1,0 @@
-instance_id: LCR016
-arm_reward_array: 0.68, 0.7
-subsidy_factor: 0.1
-arm_cost_array: 0.1, 0.5

@@ -1,6 +1,0 @@
-# Instance 6
-instance_id: ELL_06
-arm_reward_array: 0.74, 0.5, 0.8, 0.75
-ref_arm_ell: 2
-arm_cost_array: 0.15, 0.2, 0.21, 0.25
-subsidy_factor: 0.0

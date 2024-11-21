@@ -1,3 +1,5 @@
+## Script derived from src/simulate_play/simulate_policies_fcs.py but
+# hard-coded for the results simulated in the MovieLens experiment of the paper
 import numpy as np
 from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
@@ -12,14 +14,13 @@ parser.add_argument("-file", action="store", dest="file")
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=500)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=500000)
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=10)
+parser.add_argument("-alpha", action="store", dest="alpha", type=float)   # subsidy factor
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
 # Explore then commit - CS and Pairwise Elimination CS (Ours)
 algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
-# algos = ['cs-pe', 'cs-ts']
-# algos = ['cs-ucb', 'cs-ts']
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -37,8 +38,11 @@ if __name__ == '__main__':
         raise ValueError("No arm_reward_array found in the input file")
     subsidy_factor = instance_data.get('subsidy_factor', None)
     # Abort if there is no subsidy_factor
+    # In this version of the script, some subsidy factor must be specified
+    #  in the bandit instance file being parsed, however that factor is over-written by
+    #  the one passed as a command line argument
     if subsidy_factor is None:
-        raise ValueError("No min_reward found in the input file")
+        raise ValueError("No subsidy factor found in the input file")
     arm_cost_array = instance_data.get('arm_cost_array', None)
     # Abort if there is no arm_cost_array
     if arm_cost_array is None:
@@ -49,6 +53,8 @@ if __name__ == '__main__':
     # - - - - - - - - - - - - - - - -
     # Create a boolean array of arms that have reward >= (1 - subsidy_factor) * max_reward
     max_reward = np.max(arm_reward_array)   # Largest return
+    # Read in subsidy factor
+    subsidy_factor = args.alpha
     # Compute the reward against Quality Regret is calibrated/calculated, called smallest tolerated reward
     mu_calib = (1 - subsidy_factor) * max_reward
     acceptable_arms = arm_reward_array >= mu_calib
