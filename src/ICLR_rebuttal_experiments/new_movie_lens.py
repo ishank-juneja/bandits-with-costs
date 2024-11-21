@@ -11,6 +11,7 @@ from src.policy_library import cs_ucb, cs_ts, cs_etc, cs_pe
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
+parser.add_argument('-algos', type=str, nargs='+', help='Algorithms to be simulated')
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=500)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=500000)
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=10)
@@ -19,8 +20,8 @@ args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-# Explore then commit - CS and Pairwise Elimination CS (Ours)
-algos = ['cs-etc', 'cs-ucb', 'cs-ts', 'cs-pe']
+# Read in list of selected algorithms from command line
+selected_algos = args.algos
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -67,7 +68,7 @@ if __name__ == '__main__':
     c_calib = arm_cost_array[k_calib]
     # Print a column headers for the output file
     sys.stdout.write("algo,rs,time-step,qual_reg,cost_reg,nsamps\n")
-    for al in algos:
+    for al in selected_algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
             np.random.seed(rs)
