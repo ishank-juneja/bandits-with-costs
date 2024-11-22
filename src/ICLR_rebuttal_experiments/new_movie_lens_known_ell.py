@@ -1,3 +1,5 @@
+# Similar to simulate_play/ref_ell_setting.py, however has the reference arm \ell
+#  being programmable instead of loaded from instance file
 import numpy as np
 from src.utils import do_bookkeeping_cost_subsidy, simulate_bandit_rewards
 import sys
@@ -9,15 +11,18 @@ from src.instance_handling.get_instance import read_instance_from_file
 # Command line inputs
 parser = argparse.ArgumentParser()
 parser.add_argument("-file", action="store", dest="file")
+parser.add_argument('-algos', type=str, nargs='+', help='Algorithms to be simulated')
 parser.add_argument("-STEP", action="store", dest="STEP", type=int, default=1000)
 parser.add_argument("-horizon", action="store", dest="horizon", type=float, default=int(4e5))
 parser.add_argument("-nruns", action="store", dest="nruns", type=int, default=50)
+# New cmd line arg for index of reference arm \ell
+parser.add_argument("-ell", action="store", dest="ell", type=int, default=0)
 args = parser.parse_args()
 # Get the input bandit instance file_name
 in_file = args.file
 # Policies to be simulated
-algos = ['asymmetric-pe', 'ucb-cs']
-
+# Read in list of selected algorithms from command line
+selected_algos = args.algos
 # Horizon/ max number of iterations
 horizon = int(args.horizon)
 # Number of runs to average over
@@ -56,9 +61,12 @@ if __name__ == '__main__':
     arm_cost_array = instance_data.get('arm_cost_array', None)
     if arm_cost_array is None:
         raise ValueError("No arm_cost_array found in the input file")
-    ref_arm_ell = instance_data.get('ref_arm_ell', None)
-    if ref_arm_ell is None:
-        raise ValueError("No ref_arm_ell found in the input file")
+    # ref_arm_ell = instance_data.get('ref_arm_ell', None)
+    # Overrite the ref_arm_ell with the one provided in the command line
+    ref_arm_ell = args.ell
+    # Check if ref_arm_ell is defined/within range for the specified bandit instance
+    assert 0 <= ref_arm_ell < len(arm_reward_array), "Reference arm ell is out of range"
+    # Recover the cost of ref arm ell
     arm_ell_cost = arm_cost_array[ref_arm_ell]
     # Infer the nominal number of arms without any pre-processing/pruning
     n_arms = len(arm_reward_array)
@@ -77,7 +85,7 @@ if __name__ == '__main__':
     c_calib = arm_cost_array[k_calib]
     # Print a column headers for the output file
     sys.stdout.write("algo,rs,time-step,qual_reg,cost_reg,nsamps\n")
-    for al in algos:
+    for al in selected_algos:
         for rs in range(nruns):
             # Set numpy random seed to make output deterministic for a given run
             np.random.seed(rs)
@@ -181,7 +189,7 @@ if __name__ == '__main__':
                                                     mu_hat=mu_hat, qual_reg=qual_reg, cost_reg=cost_reg, al=al,
                                                     rs=rs, arm_reward_array=arm_reward_array, mu_calib=mu_calib,
                                                     arm_cost_array=arm_cost_array, c_calib=c_calib))
-            elif al == 'ucb-cs':    # This is the known ell variant
+            elif al == 'ucb-cs':
                 # Preprocessing (identical to regular pe)
                 # - - - - - - - -
                 # Perform pruning by removing arms with cost strictly higher than arm ell
