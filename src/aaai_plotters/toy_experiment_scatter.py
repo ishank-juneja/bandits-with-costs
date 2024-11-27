@@ -137,5 +137,5 @@ plt.tight_layout()
 # plt.show()
 
 # Save figure
-plt.savefig(save_dir + "/toy/toy_experiment_pecs.pdf", bbox_inches="tight")
+plt.savefig(save_dir + "/figure3.pdf", bbox_inches="tight")
 plt.close()

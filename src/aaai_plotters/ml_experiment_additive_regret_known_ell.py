@@ -99,5 +99,5 @@ ax.legend(handles, labels, loc='upper left', fontsize=16, framealpha=1.0,
 
 # plt.show()
 
-plt.savefig(f"{args.save_dir}/movie_lens_experiment_pe.pdf", bbox_inches="tight")
+plt.savefig(f"{args.save_dir}/figure1.pdf", bbox_inches="tight")
 plt.close()

@@ -17,7 +17,6 @@ parser.add_argument('--save-dir', type=str, help='The directory to save the plot
 args = parser.parse_args()
 
 selected_algos = ['cs-pe', 'cs-ucb', 'cs-ts', 'cs-etc']
-selected_algos = ['cs-pe', 'cs-ts', 'cs-etc']
 
 # Map algo names used in the log files to algo names used in the writing
 custom_algo_names = {
@@ -140,6 +139,6 @@ handles, labels = axs[0].get_legend_handles_labels()
 axs[0].legend(handles, labels, loc='upper left', ncol=2, fontsize=22,
                  framealpha=1.0, handlelength=3, columnspacing=0.5)
 
-plt.show()
-# plt.savefig(f"{args.save_dir}/movie_lens_experiment_pecs.pdf", bbox_inches="tight")
-# plt.close()
+# plt.show()
+plt.savefig(f"{args.save_dir}/figure2.pdf", bbox_inches="tight")
+plt.close()
