@@ -60,7 +60,7 @@ plot1_xs_markers = np.linspace(0.05, 0.45, 9) # The value of the varying first a
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
 plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
 
-axs.set_title('Toy Experiment', fontsize=18, fontweight='bold', pad=10)
+axs.set_title('Movie Lens Many alpha', fontsize=18, fontweight='bold', pad=10)
 axs.set_xlabel(r'Subsidy Factor $\alpha$', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_xticks(plot1_xs)
@@ -134,8 +134,8 @@ axs.legend(handles=legend_elements, loc='upper left', ncol=2, fontsize=16, colum
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
-# plt.show()
+plt.show()
 
 # Save figure
-plt.savefig(save_dir + "/ml/ml_alpha_swept.pdf", bbox_inches="tight")
-plt.close()
+# plt.savefig(save_dir + "/ml/ml_alpha_swept.pdf", bbox_inches="tight")
+# plt.close()

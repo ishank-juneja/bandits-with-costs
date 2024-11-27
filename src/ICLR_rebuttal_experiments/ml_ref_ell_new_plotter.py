@@ -36,7 +36,7 @@ nseeds = -1
 # Retrieve the number of files to be processed
 sorted_files_folder1 = sorted(pathlib.Path(folder).iterdir(), key=lambda x: x.name)
 num_files1 = len(sorted_files_folder1)
-assert num_files1 == 4, "Hard Coded 4 different values of reference arm ell"
+assert num_files1 == 7, "Hard Coded 4 different values of reference arm ell"
 
 
 # Create a 2 x 1 figure. First we shall do all the things that go into plotting the
@@ -47,7 +47,7 @@ fig, axs = plt.subplots(1, 1, figsize=(10, 6))
 # 12 equispaced points between 0 and 1 (inclusive)
 plot1_xs = np.linspace(0, 1, num_files1)
 # This below line needs to be hand-coded based on the plots
-plot1_xs_markers = np.array(range(4, 19, 4)) # The value of the varying first arm for the instance family
+plot1_xs_markers = np.array(range(1, 20, 3)) # The value of the varying first arm for the instance family
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
 plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
 

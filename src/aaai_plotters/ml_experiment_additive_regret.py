@@ -17,6 +17,7 @@ parser.add_argument('--save-dir', type=str, help='The directory to save the plot
 args = parser.parse_args()
 
 selected_algos = ['cs-pe', 'cs-ucb', 'cs-ts', 'cs-etc']
+selected_algos = ['cs-pe', 'cs-ts', 'cs-etc']
 
 # Map algo names used in the log files to algo names used in the writing
 custom_algo_names = {
@@ -90,7 +91,7 @@ for idx, algo_name in enumerate(selected_algos):
     # Filter out the data corresponding to just this algorithm
     algo_data = bandit_data[bandit_data["algo"] == algo_name]
     # Populate y_points with the worst case performance
-    max_index = algo_data[algo_data["time-step"] == horizon]['qual_reg'].idxmax()
+    max_index = algo_data[algo_data["time-step"] == horizon]['cost_reg'].idxmax()
     max_seed = algo_data.loc[max_index, 'rs']
     y_points_cost = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['cost_reg'].values
     y_points_qual = algo_data[(algo_data['rs'] == max_seed) & (algo_data['time-step'].isin(x_points))]['qual_reg'].values
@@ -139,6 +140,6 @@ handles, labels = axs[0].get_legend_handles_labels()
 axs[0].legend(handles, labels, loc='upper left', ncol=2, fontsize=22,
                  framealpha=1.0, handlelength=3, columnspacing=0.5)
 
-# plt.show()
-plt.savefig(f"{args.save_dir}/movie_lens_experiment_pecs.pdf", bbox_inches="tight")
-plt.close()
+plt.show()
+# plt.savefig(f"{args.save_dir}/movie_lens_experiment_pecs.pdf", bbox_inches="tight")
+# plt.close()

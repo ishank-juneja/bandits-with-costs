@@ -12,9 +12,9 @@ OUT_FILE_PATH="aaai_results/_run_logs/ml_known_ell/"
 FILE="${COMMON_PATH}/movie_lens_instance.txt"
 
 # Default parameters for the Python script
-STEP=1000
+STEP=10000
 HORIZON=5000000
-NRUNS=2
+NRUNS=100
 
 echo "Running simulation on $FILE"
 
@@ -41,9 +41,9 @@ run_process() {
     echo "Completed: ell = ell, algorithm = $algo, core = $core"
 }
 
-# Sweep over ell values from 0 - 19 in intervals of 4
+# Sweep over ell values from 1 - 19 in intervals of 3
 index=0
-for ELL in $(seq 0 4 19); do
+for ELL in $(seq 1 3 19); do
     filename=$(basename -- "$FILE")
     foldername="${filename%.*}_ell_${ELL}"
     mkdir -p "${OUT_FILE_PATH}${foldername}"
@@ -61,7 +61,7 @@ wait
 echo "All ell simulations complete"
 
 # Loop through each ell value
-for ELL in $(seq 0 4 19); do
+for ELL in $(seq 1 3 19); do
     # Folder and file setup for concatenation
     filename=$(basename -- "$FILE")
     foldername="${filename%.*}_ell_${ELL}"
