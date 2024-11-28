@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Define path to the Python script
-PYTHON_SCRIPT="src/ICLR_rebuttal_experiments/new_movie_lens.py"
+PYTHON_SCRIPT="src/param_variation_experiments/vary_alpha_fcs_setting.py"
 
 # Common path variable
-COMMON_PATH="aaai_data/bandit_instances"
+COMMON_PATH="data/bandit_instances"
 # Result path variable
-OUT_FILE_PATH="aaai_results/_run_logs/ml/"
+OUT_FILE_PATH="results/_run_logs/ml_fcs_vary_alpha/"
 
 # Single file to use
 FILE="${COMMON_PATH}/movie_lens_instance.txt"
