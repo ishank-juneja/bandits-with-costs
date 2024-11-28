@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # Define path to the Python script
-PYTHON_SCRIPT="src/param_variation_experiments/vary_alpha_fcs_setting.py"
+PYTHON_SCRIPT="src/param_variation_experiments/vary_alpha_known_reference_arm_setting.py"
 
 # Common path variable
 COMMON_PATH="data/bandit_instances"
 # Result path variable
-OUT_FILE_PATH="results/_run_logs/gr_fcs_vary_alpha/"
+OUT_FILE_PATH="results/_run_logs/gr_known_ell_vary_alpha/"
 
 # Single file to use
-FILE="${COMMON_PATH}/good_reads_instance.txt"
+FILE="${COMMON_PATH}/good_reads_instance_ell_3.txt"
 
 # Default parameters for the Python script
-STEP=100
-HORIZON=5000
+STEP=1000
+HORIZON=5000000
 NRUNS=25
 
 echo "Running simulation on $FILE"
@@ -22,7 +22,7 @@ echo "Running simulation on $FILE"
 NUM_CORES=$(grep -c ^processor /proc/cpuinfo)
 
 # Define algorithm array
-ALGORITHMS=("cs-pe" "cs-etc" "cs-ucb" "cs-ts")
+ALGORITHMS=("pe" "ucb-cs")
 
 # Function to run process and echo completion
 run_process() {
@@ -41,10 +41,10 @@ run_process() {
     echo "Completed: alpha = $alpha, algorithm = $algo, core = $core"
 }
 
-# Sweep over alpha values from 0.05 to 0.45 in increments of 0.05
+# Sweep over alpha values from 0 - 0.45 in intervals of 0.05
 index=0
-for ALPHA in $(seq 0.05 0.05 0.45); do
-	filename=$(basename -- "$FILE")
+for ALPHA in $(seq 0 0.05 0.45); do
+    filename=$(basename -- "$FILE")
     foldername="${filename%.*}_alpha_${ALPHA}"
     mkdir -p "${OUT_FILE_PATH}${foldername}"
     for ALGO in "${ALGORITHMS[@]}"; do
@@ -61,7 +61,7 @@ wait
 echo "All alpha simulations complete"
 
 # Loop through each alpha value
-for ALPHA in $(seq 0.05 0.05 0.45); do
+for ALPHA in $(seq 0 0.05 0.45); do
     # Folder and file setup for concatenation
     filename=$(basename -- "$FILE")
     foldername="${filename%.*}_alpha_${ALPHA}"
@@ -81,4 +81,3 @@ for ALPHA in $(seq 0.05 0.05 0.45); do
 done
 
 echo "All files stitched and original directories cleaned up."
-
