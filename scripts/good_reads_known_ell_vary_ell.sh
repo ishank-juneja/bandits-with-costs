@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # Define path to the Python script
-PYTHON_SCRIPT="src/param_variation_experiments/vary_alpha_fcs_setting.py"
+PYTHON_SCRIPT="src/param_variation_experiments/vary_ell_known_reference_arm_setting.py"
 
 # Common path variable
 COMMON_PATH="data/bandit_instances"
 # Result path variable
-OUT_FILE_PATH="results/_run_logs/gr_fcs_vary_alpha/"
+OUT_FILE_PATH="results/_run_logs/gr_known_ell_vary_ell/"
 
 # Single file to use
 FILE="${COMMON_PATH}/good_reads_instance.txt"
 
 # Default parameters for the Python script
-STEP=100
-HORIZON=5000
+STEP=1000
+HORIZON=5000000
 NRUNS=25
 
 echo "Running simulation on $FILE"
@@ -22,7 +22,7 @@ echo "Running simulation on $FILE"
 NUM_CORES=$(grep -c ^processor /proc/cpuinfo)
 
 # Define algorithm array
-ALGORITHMS=("cs-pe" "cs-etc" "cs-ucb" "cs-ts")
+ALGORITHMS=("pe" "asymmetric-pe" "ucb-cs")
 
 # Function to run process and echo completion
 run_process() {
@@ -31,26 +31,26 @@ run_process() {
     local step=$3
     local horizon=$4
     local nruns=$5
-    local alpha=$6
+    local ell=$6
     local core=$7
     local logname=$8
     local foldername=$9
 
     # Set process to specific core
-    taskset -c "$core" python3 $PYTHON_SCRIPT -algos $algo -file "$file" -STEP $step -horizon $horizon -nruns $nruns -alpha $alpha > "${OUT_FILE_PATH}${foldername}/${logname}"
-    echo "Completed: alpha = $alpha, algorithm = $algo, core = $core"
+    taskset -c "$core" python3 $PYTHON_SCRIPT -algos $algo -file "$file" -STEP $step -horizon $horizon -nruns $nruns -ell $ell > "${OUT_FILE_PATH}${foldername}/${logname}"
+    echo "Completed: ell = ell, algorithm = $algo, core = $core"
 }
 
-# Sweep over alpha values from 0.05 to 0.45 in increments of 0.05
+# Sweep over ell values from 1 - 19 in intervals of 3
 index=0
-for ALPHA in $(seq 0.05 0.05 0.45); do
-	filename=$(basename -- "$FILE")
-    foldername="${filename%.*}_alpha_${ALPHA}"
+for ELL in $(seq 1 2 7); do
+    filename=$(basename -- "$FILE")
+    foldername="${filename%.*}_ell_${ELL}"
     mkdir -p "${OUT_FILE_PATH}${foldername}"
     for ALGO in "${ALGORITHMS[@]}"; do
-        logname="${filename%.*}_alpha_${ALPHA}_${ALGO}_log.csv"
-        echo "Running simulation for alpha = $ALPHA, algorithm = $ALGO on core $((index % NUM_CORES))"
-        run_process $ALGO $FILE $STEP $HORIZON $NRUNS $ALPHA $((index % NUM_CORES)) $logname $foldername &
+        logname="${filename%.*}_ell_${ELL}_${ALGO}_log.csv"
+        echo "Running simulation for ell = $ELL, algorithm = $ALGO on core $((index % NUM_CORES))"
+        run_process $ALGO $FILE $STEP $HORIZON $NRUNS $ELL $((index % NUM_CORES)) $logname $foldername &
         ((index++))
     done
 done
@@ -58,20 +58,20 @@ done
 # Wait for all background processes to finish
 wait
 
-echo "All alpha simulations complete"
+echo "All ell simulations complete"
 
-# Loop through each alpha value
-for ALPHA in $(seq 0.05 0.05 0.45); do
+# Loop through each ell value
+for ELL in $(seq 1 2 7); do
     # Folder and file setup for concatenation
     filename=$(basename -- "$FILE")
-    foldername="${filename%.*}_alpha_${ALPHA}"
+    foldername="${filename%.*}_ell_${ELL}"
     stitched_filename="${foldername}_log.csv"
 
     # Initialize the stitched file with the header of the first CSV file
     first_file="${OUT_FILE_PATH}${foldername}/$(ls ${OUT_FILE_PATH}${foldername} | head -n 1)"
     head -n 1 "$first_file" > "${OUT_FILE_PATH}${stitched_filename}"
 
-    # Concatenate all CSV files for current alpha, skip headers after the first file
+    # Concatenate all CSV files for current ell, skip headers after the first file
     for CSV_FILE in "${OUT_FILE_PATH}${foldername}"/*.csv; do
         tail -n +2 "$CSV_FILE" >> "${OUT_FILE_PATH}${stitched_filename}"
     done
@@ -81,4 +81,3 @@ for ALPHA in $(seq 0.05 0.05 0.45); do
 done
 
 echo "All files stitched and original directories cleaned up."
-
