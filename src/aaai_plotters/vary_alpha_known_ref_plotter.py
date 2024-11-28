@@ -36,7 +36,7 @@ nseeds = -1
 # Retrieve the number of files to be processed
 sorted_files_folder1 = sorted(pathlib.Path(folder).iterdir(), key=lambda x: x.name)
 num_files1 = len(sorted_files_folder1)
-assert num_files1 == 7, "Hard Coded 4 different values of reference arm ell"
+assert num_files1 == 10, "Number of files in Linear Cost Regret experiment should be 12"
 
 
 # Create a 2 x 1 figure. First we shall do all the things that go into plotting the
@@ -47,12 +47,12 @@ fig, axs = plt.subplots(1, 1, figsize=(10, 6))
 # 12 equispaced points between 0 and 1 (inclusive)
 plot1_xs = np.linspace(0, 1, num_files1)
 # This below line needs to be hand-coded based on the plots
-plot1_xs_markers = np.array(range(1, 20, 3)) # The value of the varying first arm for the instance family
+plot1_xs_markers = np.linspace(0.0, 0.45, 10) # The value of the varying first arm for the instance family
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
 plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
 
-axs.set_title('Hyper-parameter for Known Ell Experiment', fontsize=18, fontweight='bold', pad=10)
-axs.set_xlabel(r'Arm $\ell index', fontsize=16, labelpad=10, fontweight='bold')
+axs.set_title('Movie Lens Many alpha', fontsize=18, fontweight='bold', pad=10)
+axs.set_xlabel(r'Subsidy Factor $\alpha$', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_xticks(plot1_xs)
 # axs.set_xticklabels(plot1_xs_markers_str, fontsize=16, fontweight='bold') # Setting alphabetical x-tick labels  # Setting alphabetical x-tick labels
@@ -108,7 +108,7 @@ summed_regret_data = cost_regret_data + qual_regret_data
 for idx, algo_name in enumerate(selected_algos):
     for jdx, mark_x in enumerate(plot1_xs):
         axs.scatter([mark_x] * nseeds, summed_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx],
-                    s=100, alpha=1.0, label=algo_name)
+                    s=100, alpha=0.1, label=algo_name)
         # Plot a single point per algorithm per x marker with the average:
         #  - Average over all seeds
         # axs.scatter(mark_x, np.mean(cost_regret_data[idx, jdx]), color='k', marker=marker_styles[idx], s=100)
