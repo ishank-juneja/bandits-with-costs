@@ -51,7 +51,7 @@ plot1_xs_markers = np.linspace(0.0, 0.45, 10) # The value of the varying first a
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
 plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
 
-axs.set_title('Movie Lens Many alpha', fontsize=18, fontweight='bold', pad=10)
+axs.set_title(r'Goodreads varying $\alpha$, Known $\ell$', fontsize=18, fontweight='bold', pad=10)
 axs.set_xlabel(r'Subsidy Factor $\alpha$', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_xticks(plot1_xs)
@@ -120,13 +120,13 @@ axs.set_yscale('log')
 legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w',
                           label=selected_algos[i], markerfacecolor=COLORS[i], markersize=18)
                    for i in range(nalgos)]
-axs.legend(handles=legend_elements, loc='lower left', ncol=2, fontsize=16, columnspacing=0.2)
+axs.legend(handles=legend_elements, loc='lower left', ncol=1, fontsize=16, columnspacing=0.2)
 
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
-plt.show()
+# plt.show()
 
 # Save figure
-# plt.savefig(save_dir + "/ml/ml_alpha_swept.pdf", bbox_inches="tight")
-# plt.close()
+plt.savefig(save_dir + "/fig1d.pdf", bbox_inches="tight")
+plt.close()

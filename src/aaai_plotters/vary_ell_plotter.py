@@ -50,9 +50,9 @@ plot1_xs = np.linspace(0, 1, num_files1)
 # This below line needs to be hand-coded based on the plots
 plot1_xs_markers = np.array(range(1, 20, 3)) # The value of the varying first arm for the instance family
 # Convert the NumPy array to a list of strings, formatted to 2 decimal places
-plot1_xs_markers_str = [f'{x:.2f}' for x in plot1_xs_markers]
+plot1_xs_markers_str = [f'{x}' for x in plot1_xs_markers]
 
-axs.set_title('Hyper-parameter for Known Ell Experiment', fontsize=18, fontweight='bold', pad=10)
+axs.set_title(r'MovieLens varying $\ell$', fontsize=18, fontweight='bold', pad=10)
 axs.set_xlabel(r'Arm $\ell$ index', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_ylabel('Cost Regret + Quality Regret', fontsize=16, labelpad=10, fontweight='bold')
 axs.set_xticks(plot1_xs)
@@ -104,12 +104,14 @@ for file_idx, in_file in enumerate(sorted_files_folder1):
         qual_regret_data[index, file_idx, :] = algo_data.loc[algo_data["time-step"] == horizon]['qual_reg']
 
 summed_regret_data = cost_regret_data + qual_regret_data
+# Convert any zero summed regret data to 1.0 before plotting on y-scale
+summed_regret_data[summed_regret_data == 0] = 1.0
 
 # Scatter plot on the first subplot
 for idx, algo_name in enumerate(selected_algos):
     for jdx, mark_x in enumerate(plot1_xs):
         axs.scatter([mark_x] * nseeds, summed_regret_data[idx, jdx], color=COLORS[idx], marker=marker_styles[idx],
-                    s=100, alpha=1.0, label=algo_name)
+                    s=100, alpha=0.1, label=algo_name)
         # Plot a single point per algorithm per x marker with the average:
         #  - Average over all seeds
         # axs.scatter(mark_x, np.mean(cost_regret_data[idx, jdx]), color='k', marker=marker_styles[idx], s=100)
@@ -121,13 +123,13 @@ axs.set_yscale('log')
 legend_elements = [Line2D([0], [0], marker=marker_styles[i], color='w',
                           label=selected_algos[i], markerfacecolor=COLORS[i], markersize=18)
                    for i in range(nalgos)]
-axs.legend(handles=legend_elements, loc='lower left', ncol=2, fontsize=16, columnspacing=0.2)
+axs.legend(handles=legend_elements, loc='upper left', ncol=1, fontsize=16, columnspacing=0.2)
 
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
-plt.show()
+# plt.show()
 
 # Save figure
-# plt.savefig(save_dir + "/ml/ml_alpha_swept.pdf", bbox_inches="tight")
-# plt.close()
+plt.savefig(save_dir + "/fig1a.pdf", bbox_inches="tight")
+plt.close()

@@ -9,7 +9,7 @@ folders = [
     "results/_run_logs/ml_known_ell_vary_ell",
     "results/_run_logs/gr_known_ell_vary_ell",
     "results/_run_logs/ml_known_ell_vary_alpha",
-    "results/_run_logs/gr_fcs_vary_alpha",
+    "results/_run_logs/gr_known_ell_vary_alpha",
 ]
 save_dir = 'results/plots/trade_off'
 
@@ -72,7 +72,7 @@ legend_elements = [
     Line2D([0], [0], marker=marker_styles[i], color='w', label=custom_algo_names[selected_algos[i]], markerfacecolor=COLORS[i], markersize=10)
     for i in range(len(selected_algos))
 ]
-axs[0, 0].legend(handles=legend_elements, loc='best', fontsize=14)
+axs[1, 1].legend(handles=legend_elements, loc='lower right', fontsize=14)
 
 # Layout adjustment
 plt.tight_layout()

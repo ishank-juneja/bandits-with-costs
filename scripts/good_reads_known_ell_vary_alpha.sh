@@ -22,7 +22,8 @@ echo "Running simulation on $FILE"
 NUM_CORES=$(grep -c ^processor /proc/cpuinfo)
 
 # Define algorithm array
-ALGORITHMS=("pe" "ucb-cs")
+#ALGORITHMS=("pe" "ucb-cs")
+ALGORITHMS=("ucb-cs")
 
 # Function to run process and echo completion
 run_process() {
