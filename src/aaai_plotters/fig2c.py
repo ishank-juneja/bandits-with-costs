@@ -49,7 +49,7 @@ for idx, algo_name in enumerate(selected_algos):
         qual_reg_jdx_data = algo_data.loc[algo_data["time-step"] == x_points[jdx]]['qual_reg'].mean()
         y_points[jdx] = cost_reg_jdx_data + qual_reg_jdx_data
     ax.plot(x_points, y_points, color=COLORS[idx], linewidth=3, label=custom_algo_names[algo_name],
-            marker=marker_styles[idx], markersize=10, markevery=500)
+            marker=marker_styles[idx], markersize=10, markevery=50)
 
 ax.set_title(r'Average Regret', fontweight="bold", fontsize=24, pad=10)
 
@@ -75,7 +75,7 @@ handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles, labels, loc=(0.25, 0.6), ncol=2, fontsize=22,
           framealpha=1.0, handlelength=3, columnspacing=0.5)
 
-plt.show()
+# plt.show()
 
-# plt.savefig(f"{args.save_dir}/fig2a.pdf", bbox_inches="tight")
-# plt.close()
+plt.savefig(f"{args.save_dir}/fig2c.pdf", bbox_inches="tight")
+plt.close()
