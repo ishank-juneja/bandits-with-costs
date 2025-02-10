@@ -12,8 +12,8 @@ OUT_FILE_PATH="results/_run_logs/gr_fcs_vary_alpha/"
 FILE="${COMMON_PATH}/good_reads_instance.txt"
 
 # Default parameters for the Python script
-STEP=100
-HORIZON=5000
+STEP=1000
+HORIZON=5000000
 NRUNS=25
 
 echo "Running simulation on $FILE"

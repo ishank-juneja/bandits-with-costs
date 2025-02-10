@@ -12,9 +12,9 @@ OUT_FILE_PATH="results/_run_logs/ml_fcs_vary_alpha/"
 FILE="${COMMON_PATH}/movie_lens_instance.txt"
 
 # Default parameters for the Python script
-STEP=100
-HORIZON=5000
-NRUNS=3
+STEP=1000
+HORIZON=5000000
+NRUNS=25
 
 echo "Running simulation on $FILE"
 
