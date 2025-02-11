@@ -7,3 +7,4 @@ venv
 *.png
 aaai_results
 /data/good_reads/
+/MAB_CS_Nov23.egg-info/
